@@ -1,0 +1,21 @@
+{
+  "name": "kubera-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest --passWithNoTests --coverage"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.9.0",
+    "jest": "^29.7.0",
+    "typescript": "^5.6.3"
+  }
+}
