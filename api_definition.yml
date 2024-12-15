@@ -76,6 +76,28 @@ paths:
           $ref: '#/components/responses/NotValidUrl'
         '400':
           $ref: '#/components/responses/InternalServerError'
+  '/api/mystery-box/platform':
+    get:
+      description: Obtener plataformas.
+      parameters:
+        - $ref: '#/components/parameters/AcceptHeader'
+      responses:
+        '200':
+          description: Ok.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    example: true
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/NotValidUrl'
+        '400':
+          $ref: '#/components/responses/InternalServerError'
   '/api/mystery-box/steam/user':
     post:
       description: Almacena el nombre de usuario o por lo menos el id de steam en bbdd asociado a la ip y devuelve true o false en caso de poder acceder a la info del usuario o no.
@@ -122,6 +144,19 @@ paths:
             type: string
             example: 12,32,56,78
           description: Una lista separada por comas de los identificadores de las categorías seleccionadas
+        - in: query
+          required: true
+          name: country_code
+          schema:
+            type: string
+            example: ES
+        - in: query
+          required: true
+          name: platforms
+          schema:
+            type: string
+            example: 12,32,56,78
+          description: Una lista separada por comas de los identificadores de las plataformas seleccionadas
         - in: query
           name: option
           required: false
