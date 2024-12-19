@@ -3,7 +3,8 @@ export class Category {
     private readonly id: string,
     private readonly slug: string,
     private readonly name: string,
-    private readonly externalId: string
+    private readonly externalId: string,
+    private readonly visible: boolean
   ) {}
 
   getId(): string {
@@ -20,5 +21,9 @@ export class Category {
 
   getDescription(): string {
     return this.externalId;
+  }
+
+  isVisible(): boolean {
+    return this.visible;
   }
 }

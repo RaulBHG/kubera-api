@@ -7,6 +7,6 @@ const app: Express = express();
 mysteryBoxRouter.get("/category", (req: Request, res: Response) => {
   new CategoryController().getAll(res);
 });
-app.use("/mistery-box", mysteryBoxRouter); 
+app.use("/mystery-box", mysteryBoxRouter); 
 
 module.exports = app;

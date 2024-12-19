@@ -15,6 +15,7 @@ export class CategoryController {
           id: category.getId(),
           slug: category.getSlug(),
           name: category.getName(),
+          visible: category.isVisible(),
         })
       );
 

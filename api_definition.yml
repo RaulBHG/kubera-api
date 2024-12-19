@@ -51,8 +51,22 @@ components:
                 type: string
                 example: "Error example"
   schemas:
-tags:
-
+schemas:
+  category:
+    type: object
+    properties:
+      id:
+        type: uuid
+        example: 238c7a39-5d83-4082-a00f-74ab51a883b2
+      slug:
+        type: string
+        example: slug-example
+      name:
+        type: string
+        example: Nombre ejemplo
+      visible:
+        type: bool
+        example: true
 paths:
   '/api/mystery-box/category':
     get:
@@ -70,11 +84,11 @@ paths:
                   success:
                     example: true
                     type: boolean
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '422':
-          $ref: '#/components/responses/NotValidUrl'
-        '400':
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/schemas/category'
+        '500':
           $ref: '#/components/responses/InternalServerError'
   '/api/mystery-box/platform':
     get:
