@@ -16,6 +16,7 @@ module.exports = (sequelize, DataTypes) => {
       slug: DataTypes.STRING,
       name: DataTypes.STRING,
       external_id: DataTypes.STRING,
+      visible: DataTypes.BOOLEAN,
     },
     {
       sequelize,
