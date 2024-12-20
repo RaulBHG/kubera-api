@@ -1,4 +1,4 @@
-import { GetCategoryUseCase } from "../../application/GetCategoryUseCase";
+import { GetVisibleCategoryUseCase } from "../../application/GetCategoryUseCase";
 import { Category } from "../../domain/entities/Category";
 import { CategorySequelizeRepository } from "../repositories/CategorySequelizeRepository";
 import { Response } from "express";
@@ -6,10 +6,10 @@ import { Response } from "express";
 export class CategoryController {
   async getAll(res: Response): Promise<void> {
     try {
-      const getCategoryUseCase = new GetCategoryUseCase(
+      const useCase = new GetVisibleCategoryUseCase(
         new CategorySequelizeRepository()
       );
-      const categories = await getCategoryUseCase.getAll();
+      const categories = await useCase.get();
       const categoriesWithoutExternalId = categories.map(
         (category: Category) => ({
           id: category.getId(),

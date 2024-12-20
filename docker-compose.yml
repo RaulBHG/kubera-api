@@ -1,5 +1,6 @@
 services:
   mysql:
+    container_name: kubera-mysql
     image: 'mysql/mysql-server:8.0'
     ports:
         - '${FORWARD_DB_PORT:-3306}:3306'
@@ -10,6 +11,8 @@ services:
         MYSQL_USER: '${DB_USERNAME}'
         MYSQL_PASSWORD: '${DB_PASSWORD}'
         MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    volumes:
+      - './mysql-data:/var/lib/mysql'
     networks:
         - backend
     healthcheck:
@@ -20,7 +23,17 @@ services:
             - '-p${DB_PASSWORD}'
         retries: 3
         timeout: 5s
+
+  tls-client-api:
+    container_name: kubera-tls-client-api
+    ports:
+      - '${FORWARD_TLS_CLIENT_API_PORT:-8080}:8080'
+    image: 'lfsaga/tls-client-api'
+    networks:
+      - backend
+    
 volumes: 
   db:
+  
 networks:
   backend:
