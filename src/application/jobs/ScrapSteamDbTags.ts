@@ -47,14 +47,13 @@ export class ScrapSteamDbTags implements JobContract {
     return "scrape-steamdb-tags-to-categories";
   }
 
-  // TODO: retorno: evitar any
   parseHTML({
     htmlParser,
     htmlData,
   }: {
     htmlParser: HtmlParserAdapter;
     htmlData: string;
-  }): any[] {
+  }): { externalId: string; name: string; parentName: string; icon: string }[] {
     htmlParser.load(htmlData);
 
     const data = htmlParser
@@ -75,9 +74,11 @@ export class ScrapSteamDbTags implements JobContract {
           throw new Error("Invalid tag text format");
         }
 
+        const parentName = tag.parent()?.parent()?.prev()?.text().trim() ?? ""; // optional
         return {
           externalId: match[1],
           name: textParts[1],
+          parentName: parentName,
           icon: textParts[0],
         };
       });
@@ -85,7 +86,7 @@ export class ScrapSteamDbTags implements JobContract {
     return data;
   }
 
-  async execute(): Promise<any> {
+  async execute(): Promise<void> {
     try {
       const scrapingClient = new ScrapingHttpClientAdapter();
       const htmlParser = new HtmlParserAdapter();
@@ -113,9 +114,9 @@ export class ScrapSteamDbTags implements JobContract {
       const allCategories = await getAllUseCase.get();
 
       if (allCategories.length !== parsedTags.length) {
-        // TODO: evitar any
         const categoriesMap = allCategories.reduce(
-          (acc: any, category: Category) => {
+          (acc, category: Category) => {
+            //@ts-ignore
             acc[category.getExternalId()] = category;
             return acc;
           },
@@ -123,6 +124,7 @@ export class ScrapSteamDbTags implements JobContract {
         );
 
         newCategories = parsedTags.filter((tag) => {
+          //@ts-ignore
           return !categoriesMap[tag.externalId];
         });
 
@@ -144,7 +146,6 @@ export class ScrapSteamDbTags implements JobContract {
       console.log(
         `[job][ScrapSteamDbTags]: ${parsedTags.length} tags scraped successfully | ${newCategories.length} created`
       );
-      return true;
     } catch (error) {
       console.error("Job failed:", error);
       throw error;

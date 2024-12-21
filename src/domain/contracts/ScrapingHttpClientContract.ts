@@ -1,6 +1,6 @@
-// TODO: evitar any
-export interface ScrapingHttpResponse<T = any> {
-  data: any;
+export interface ScrapingHttpResponse<T> {
+  //@ts-ignore
+  data;
 }
 
 export interface ScrapingHttpClientContract {

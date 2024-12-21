@@ -1,8 +1,14 @@
-export interface ParsedElement {
+export interface ParsedNode {
   text(): string;
   attr(name: string): string | undefined;
   html(): string | null;
+  parent(): ParsedNode | null;
+  prev(): ParsedNode | null;
+  next(): ParsedNode | null;
+  children(): ParsedNode[];
 }
+
+export interface ParsedElement extends ParsedNode {}
 
 export interface HTMLParserContract {
   load(html: string): void;

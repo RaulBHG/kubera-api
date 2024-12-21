@@ -7,7 +7,7 @@ export class JobRunner {
     this.jobs.set(job.getName(), job);
   }
 
-  async runJob(jobName: string): Promise<any> {
+  async runJob(jobName: string): Promise<void> {
     const job = this.jobs.get(jobName);
     if (!job) {
       throw new Error(`Job [${jobName}] not found`);
