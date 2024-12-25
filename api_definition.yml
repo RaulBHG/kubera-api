@@ -1,5 +1,4 @@
-openapi: '3.0.2'
-
+openapi: 3.0.3
 info:
   title: API Kubera
   version: 1.0.0
@@ -8,9 +7,8 @@ servers:
   - url: http://localhost:8181
     description: Local
 
-
 components:
-  parameters:    
+  parameters:
     AcceptHeader:
       name: Accept
       in: header
@@ -29,7 +27,7 @@ components:
             properties:
               error:
                 type: string
-                example: "Error example"
+                example: 'Error example'
     InternalServerError:
       description: Error interno.
       content:
@@ -39,7 +37,7 @@ components:
             properties:
               error:
                 type: string
-                example: "Error example"
+                example: 'Error example'
     NotValidUrl:
       description: Error en la url.
       content:
@@ -49,24 +47,38 @@ components:
             properties:
               error:
                 type: string
-                example: "Error example"
+                example: 'Error example'
   schemas:
-schemas:
-  category:
-    type: object
-    properties:
-      id:
-        type: uuid
-        example: 238c7a39-5d83-4082-a00f-74ab51a883b2
-      slug:
-        type: string
-        example: slug-example
-      name:
-        type: string
-        example: Nombre ejemplo
-      visible:
-        type: bool
-        example: true
+    category:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 238c7a39-5d83-4082-a00f-74ab51a883b2
+        slug:
+          type: string
+          example: slug-example
+        name:
+          type: string
+          example: Nombre ejemplo
+        visible:
+          type: boolean
+          example: true
+    platform:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 9b721eee-04ad-4e3e-9b86-f56b3ecb38e4
+        slug:
+          type: string
+          example: platform-1
+        name:
+          type: string
+          example: Platform 1
+        visible:
+          type: boolean
+          example: true
 paths:
   '/api/mystery-box/category':
     get:
@@ -87,7 +99,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/schemas/category'
+                      $ref: '#/components/schemas/category'
         '500':
           $ref: '#/components/responses/InternalServerError'
   '/api/mystery-box/platform':
@@ -106,11 +118,11 @@ paths:
                   success:
                     example: true
                     type: boolean
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '422':
-          $ref: '#/components/responses/NotValidUrl'
-        '400':
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/platform'
+        '500':
           $ref: '#/components/responses/InternalServerError'
   '/api/mystery-box/steam/user':
     post:
