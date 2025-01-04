@@ -1,5 +1,7 @@
 import { GamePlatformAccount } from "../../entities/GamePlatformAccount";
 
 export interface GamePlatformAccountRepositoryContract {
-  create(): Promise<GamePlatformAccount>;
+  create(
+    gamePlatformAccount: GamePlatformAccount
+  ): Promise<GamePlatformAccount>;
 }

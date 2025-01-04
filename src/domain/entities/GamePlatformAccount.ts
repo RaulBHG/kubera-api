@@ -1,12 +1,14 @@
+import { Uuid } from "../value-objects/Uuid";
+
 export class GamePlatformAccount {
   constructor(
-    private readonly id: string,
+    private readonly id: Uuid | null,
     private readonly userId: string | null,
     private readonly platformUsername: string,
     private readonly platformUserId: string
   ) {}
 
-  getId(): string {
+  getId(): Uuid | null {
     return this.id;
   }
 

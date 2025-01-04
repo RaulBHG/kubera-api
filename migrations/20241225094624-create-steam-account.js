@@ -21,9 +21,11 @@ module.exports = {
       },
       steam_username: {
         type: Sequelize.STRING,
+        allowNull: true,
       },
       steam_userid: {
         type: Sequelize.STRING,
+        allowNull: true,
       },
       created_at: {
         allowNull: false,

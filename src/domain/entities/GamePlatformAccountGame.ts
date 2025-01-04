@@ -1,6 +1,8 @@
+import { Uuid } from "../value-objects/Uuid";
+
 export class GamePlatformAccountGame {
   constructor(
-    private readonly id: string,
+    private readonly id: Uuid | null,
     private readonly platformAccountId: string,
     private readonly platformGameId: number,
     private readonly name: string,
@@ -8,7 +10,7 @@ export class GamePlatformAccountGame {
     private readonly playtimeForever: number
   ) {}
 
-  getId(): string {
+  getId(): Uuid | null {
     return this.id;
   }
 

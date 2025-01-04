@@ -1,11 +1,13 @@
+import { Uuid } from "../value-objects/Uuid";
+
 export class User {
   constructor(
-    private readonly id: string,
+    private readonly id: Uuid,
     private readonly ip: string,
-    private readonly email: boolean|null
+    private readonly email: string | null
   ) {}
 
-  getId(): string {
+  getId(): Uuid {
     return this.id;
   }
 
@@ -13,8 +15,7 @@ export class User {
     return this.ip;
   }
 
-  getEmail(): boolean|null {
+  getEmail(): string | null {
     return this.email;
   }
-
 }
