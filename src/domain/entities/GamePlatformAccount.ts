@@ -4,8 +4,8 @@ export class GamePlatformAccount {
   constructor(
     private readonly id: Uuid | null,
     private readonly userId: string | null,
-    private readonly platformUsername: string,
-    private readonly platformUserId: string
+    private readonly platformUsername: string | null,
+    private readonly platformUserId: string | null
   ) {}
 
   getId(): Uuid | null {
@@ -16,11 +16,11 @@ export class GamePlatformAccount {
     return this.userId;
   }
 
-  getPlatformUsername(): string {
+  getPlatformUsername(): string | null {
     return this.platformUsername;
   }
 
-  getPlatformUserId(): string {
+  getPlatformUserId(): string | null {
     return this.platformUserId;
   }
 }
