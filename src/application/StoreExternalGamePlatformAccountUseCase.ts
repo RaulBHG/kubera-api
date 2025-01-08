@@ -2,7 +2,6 @@ import { GamePlatformAccountGamesRepositoryContract } from '../domain/contracts/
 import { GamePlatformAccountRepositoryContract } from '../domain/contracts/GamePlatform/GamePlatformAccountRepositoryContract';
 import { UserRepositoryContract } from '../domain/contracts/UserRepositoryContract';
 import { GamePlatformAccount } from '../domain/entities/GamePlatformAccount';
-import { GamePlatformAccountGame } from '../domain/entities/GamePlatformAccountGame';
 import { User } from '../domain/entities/User';
 import { Uuid } from '../domain/value-objects/Uuid';
 import { ExternalGamePlatformRepositoryContract } from './../domain/contracts/GamePlatform/ExternalGamePlatformRepositoryContract';

@@ -10,10 +10,11 @@ module.exports = {
         defaultValue: Sequelize.DataTypes.UUIDV4,
       },
       ip: {
+        allowNull: true,
         type: Sequelize.STRING,
       },
       email: {
-        allowNull: false,
+        allowNull: true,
         type: Sequelize.STRING,
       },
       created_at: {

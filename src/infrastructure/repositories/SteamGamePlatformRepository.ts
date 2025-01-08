@@ -1,6 +1,7 @@
 import axios from "axios";
 import { ExternalGamePlatformRepositoryContract } from "../../domain/contracts/GamePlatform/ExternalGamePlatformRepositoryContract";
 import { GamePlatformAccount } from "../../domain/entities/GamePlatformAccount";
+import { GamePlatformAccountGame } from "../../domain/entities/GamePlatformAccountGame";
 
 export class SteamGamePlatformRepository
   implements ExternalGamePlatformRepositoryContract
@@ -58,7 +59,7 @@ export class SteamGamePlatformRepository
         return null;
       });
 
-    if (userId && await this.getAccountByUserId(userId)) {
+    if (userId && (await this.getAccountByUserId(userId))) {
       return new GamePlatformAccount(null, null, userName, userId);
     } else {
       return null;
@@ -68,8 +69,50 @@ export class SteamGamePlatformRepository
   async getAccountReferenceGamesByAccount(
     account: GamePlatformAccount,
     limit: number
-  ): Promise<GamePlatformAccount[] | null> {
+  ): Promise<GamePlatformAccountGame[] | null> {
     console.log("getAccountReferenceGamesByAccount");
-    return null;
+    return await axios
+      .get(`${process.env.STEAM_API_URL}/IPlayerService/GetOwnedGames/v1`, {
+        params: {
+          key: process.env.STEAM_API_KEY,
+          steamid: account.getPlatformUserId(),
+          include_appinfo: true,
+          include_played_free_games: true,
+        },
+      })
+      .then(function (response) {
+        console.log(response);
+        if (response.status === 200) {
+          return response.data.response.games
+            .sort((gameA: any, gameB: any) => {
+              if (
+                (gameB.playtime_2weeks ?? 0) !== (gameA.playtime_2weeks ?? 0)
+              ) {
+                return (
+                  (gameB.playtime_2weeks ?? 0) - (gameA.playtime_2weeks ?? 0)
+                );
+              }
+              return gameB.playtime_forever - gameA.playtime_forever;
+            })
+            .slice(0, limit)
+            .map((game: any) => {
+              return new GamePlatformAccountGame(
+                null,
+                account.getId()!,
+                game.appid,
+                game.name,
+                game.playtime_2weeks ?? null,
+                game.playtime_forever
+              );
+            });
+        } else {
+          console.error(`Unexpected response status: ${response.status}`);
+          return null;
+        }
+      })
+      .catch(function (error) {
+        console.log(error);
+        return null;
+      });
   }
 }

@@ -1,5 +1,6 @@
 import { GamePlatformAccountGamesRepositoryContract } from "../../domain/contracts/GamePlatform/GamePlatformAccountGamesRepositoryContract";
 import { GamePlatformAccountGame } from "../../domain/entities/GamePlatformAccountGame";
+import { Uuid } from "../../domain/value-objects/Uuid";
 
 const AccountGameModel = require("../../../models").steam_account_reference_game;
 
@@ -9,7 +10,7 @@ export class SteamAccountReferenceGamesSequelizeRepository
   async createMultiple(games: GamePlatformAccountGame[]): Promise<boolean> {
     const newGames = await AccountGameModel.bulkCreate(
       games.map((game) => ({
-        id: game.getId()?.getValue(),
+        id: game.getId()?.getValue() ?? Uuid.create().getValue(),
         steam_account_id: game.getPlatformAccountId(),
         steam_game_id: game.getPlatformGameId(),
         name: game.getName(),

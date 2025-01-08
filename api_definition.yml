@@ -130,7 +130,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/AcceptHeader'
         - in: query
-          name: id
+          name: user_id
           required: false
           schema:
             type: string

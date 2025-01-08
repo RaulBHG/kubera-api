@@ -10,21 +10,25 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      steam_account.belongsTo(models.steam_account, {
+      steam_account_reference_game.belongsTo(models.steam_account, {
         foreignKey: "steam_account_id",
         as: "steam_account",
       });
     }
   }
-  steam_account_reference_game.init({
-    steam_account_id: DataTypes.UUID,
-    steam_game_id: DataTypes.INTEGER,
-    name: DataTypes.STRING,
-    playtime_2_weeks: DataTypes.INTEGER,
-    playtime_forever: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'steam_account_reference_game',
-  });
+  steam_account_reference_game.init(
+    {
+      steam_account_id: DataTypes.UUID,
+      steam_game_id: DataTypes.INTEGER,
+      name: DataTypes.STRING,
+      playtime_2_weeks: DataTypes.INTEGER,
+      playtime_forever: DataTypes.INTEGER,
+    },
+    {
+      sequelize,
+      modelName: "steam_account_reference_game",
+      underscored: true,
+    }
+  );
   return steam_account_reference_game;
 };
