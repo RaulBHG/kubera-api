@@ -46,7 +46,7 @@ export class SteamGamePlatformRepository
         },
       })
       .then(function (response) {
-        console.log(response);
+        console.log(`Response: ${response.status}. Data: ${response.data}`);
         if (response.status === 200 && response.data?.response?.success === 1) {
           return response.data.response.steamid;
         } else {
@@ -81,7 +81,7 @@ export class SteamGamePlatformRepository
         },
       })
       .then(function (response) {
-        console.log(response);
+        console.log(`Response: ${response.status}. Data: ${response.data}`);
         if (response.status === 200) {
           return response.data.response.games
             .sort((gameA: any, gameB: any) => {
