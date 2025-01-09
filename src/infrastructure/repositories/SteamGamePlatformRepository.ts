@@ -42,7 +42,7 @@ export class SteamGamePlatformRepository
       .get(`${process.env.STEAM_API_URL}/ISteamUser/ResolveVanityURL/v1`, {
         params: {
           key: process.env.STEAM_API_KEY,
-          vanityurl: "EnderProyects",
+          vanityurl: userName,
         },
       })
       .then(function (response) {
