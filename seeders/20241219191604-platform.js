@@ -1,0 +1,138 @@
+"use strict";
+
+const { v4: uuidv4 } = require("uuid");
+
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.bulkInsert(
+      "platforms",
+      [
+        {
+          id: uuidv4(),
+          slug: "ea-origin",
+          name: "EA Origin",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "steam",
+          name: "Steam",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "battle-net",
+          name: "Battle.net",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "ncsoft",
+          name: "NCSoft",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "ubisoft",
+          name: "Ubisoft",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "uplay",
+          name: "Uplay",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "kinguin",
+          name: "Kinguin",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "xbox-360",
+          name: "XBOX 360",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "xbox-one",
+          name: "XBOX ONE",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "playstation-3",
+          name: "PlayStation 3",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "playstation-4",
+          name: "PlayStation 4",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "playstation-vita",
+          name: "PlayStation Vita",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "android",
+          name: "Android",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "gog-com",
+          name: "GOG COM",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "nintendo",
+          name: "Nintendo",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "other",
+          name: "Other",
+          external_id: uuidv4(),
+          visible: true,
+        },
+        {
+          id: uuidv4(),
+          slug: "epic-games",
+          name: "Epic Games",
+          external_id: uuidv4(),
+          visible: true,
+        },
+      ],
+      {}
+    );
+  },
+
+  async down(queryInterface, Sequelize) {
+    await queryInterface.bulkDelete("platforms", null, {});
+  },
+};

@@ -1,31 +1,36 @@
-"use strict";
+'use strict';
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("categories", {
+    await queryInterface.createTable("steam_account_reference_games", {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.DataTypes.UUID,
         defaultValue: Sequelize.DataTypes.UUIDV4,
       },
-
-      slug: {
-        type: Sequelize.STRING,
+      steam_account_id: {
+        type: Sequelize.DataTypes.UUID,
         allowNull: false,
+        references: {
+          model: "steam_accounts", // Table name of the related model
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      },
+      steam_game_id: {
+        type: Sequelize.INTEGER,
       },
       name: {
         type: Sequelize.STRING,
+      },
+      playtime_2_weeks: {
+        type: Sequelize.INTEGER,
         allowNull: true,
       },
-      external_id: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      visible: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
+      playtime_forever: {
+        type: Sequelize.INTEGER,
       },
       created_at: {
         allowNull: false,
@@ -40,6 +45,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable("categories");
-  },
+    await queryInterface.dropTable('steam_account_reference_games');
+  }
 };
