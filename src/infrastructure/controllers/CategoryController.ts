@@ -6,23 +6,17 @@ import { Response } from "express";
 export class CategoryController {
   async getAll(res: Response): Promise<void> {
     try {
-      const getCategoryUseCase = new GetCategoryUseCase(
-        new CategorySequelizeRepository()
-      );
-      const categories = await getCategoryUseCase.getAll();
-
-      const categoriesWithoutExternalId = categories.map(
-        (category: Category) => ({
-          id: category.getId(),
-          slug: category.getSlug(),
-          name: category.getName(),
-          visible: category.isVisible(),
-        })
-      );
+      const useCase = new GetCategoryUseCase(new CategorySequelizeRepository());
+      const categories = await useCase.getVisible();
+      const formatedCategories = categories.map((category: Category) => ({
+        id: category.getId(),
+        slug: category.getSlug(),
+        name: category.getName(),
+      }));
 
       res.status(200).json({
         success: true,
-        data: categoriesWithoutExternalId,
+        data: formatedCategories,
       });
     } catch (error) {
       res.status(500).json({

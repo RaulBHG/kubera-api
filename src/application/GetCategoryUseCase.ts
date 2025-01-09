@@ -1,4 +1,4 @@
-import { CategoryRepositoryContract } from "../domain/contracts/CategoryRepositoryContract";
+import { CategoryRepositoryContract } from "../domain/contracts/repositories/CategoryRepositoryContract";
 import { Category } from "../domain/entities/Category";
 
 export class GetCategoryUseCase {
@@ -6,7 +6,11 @@ export class GetCategoryUseCase {
     private readonly categoryRepository: CategoryRepositoryContract
   ) {}
 
-  async getAll(): Promise<Category[]> {
+  async get(): Promise<Category[]> {
     return this.categoryRepository.getAll();
+  }
+
+  async getVisible(): Promise<Category[]> {
+    return this.categoryRepository.getAllVisible();
   }
 }

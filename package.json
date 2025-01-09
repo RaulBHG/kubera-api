@@ -4,21 +4,26 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "jest --passWithNoTests --coverage"
+    "test": "jest --passWithNoTests --coverage",
+    "dev": "npx ts-node ./app.ts",
+    "command": "npx ts-node ./src/infrastructure/commands/$npm_config_name.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.7.9",
+    "cheerio": "^1.0.0",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "express-validator": "^7.2.1",
     "mysql2": "^3.11.5",
-    "sequelize": "^6.37.5"
+    "sequelize": "^6.37.5",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^22.9.0",
+    "commander": "^12.1.0",
     "jest": "^29.7.0",
     "typescript": "^5.6.3",
     "uuid": "^11.0.3"
