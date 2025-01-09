@@ -10,6 +10,7 @@ export class CategoryController {
         new CategorySequelizeRepository()
       );
       const categories = await getCategoryUseCase.getAll();
+
       const categoriesWithoutExternalId = categories.map(
         (category: Category) => ({
           id: category.getId(),
