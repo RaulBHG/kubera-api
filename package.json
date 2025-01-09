@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "test": "jest --passWithNoTests --coverage",
-    "job": "npx ts-node ./src/bin/RunJob.ts"
+    "dev": "npx ts-node ./app.ts",
+    "command": "npx ts-node ./src/infrastructure/commands/$npm_config_name.ts"
   },
   "author": "",
   "license": "ISC",

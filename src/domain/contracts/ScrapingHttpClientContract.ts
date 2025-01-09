@@ -1,4 +1,3 @@
-// TODO: evitar any
 export interface ScrapingHttpResponse<T = any> {
   data: any;
 }
