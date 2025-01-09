@@ -4,8 +4,6 @@ import { HtmlParserAdapter } from "../adapters/text-parser/HtmlParserAdapter";
 import { ParsedElement } from "../../domain/contracts/HtmlParserContract";
 import { ScrapingHttpClientAdapter } from "../adapters/http/ScrapingHttpClientAdapter";
 
-const CategoryModel = require("../../../models").category;
-
 export class CategorySteamRepository
   implements ExternalCategoryRepositoryContract
 {
