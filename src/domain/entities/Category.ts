@@ -19,7 +19,7 @@ export class Category {
     return this.name;
   }
 
-  getDescription(): string {
+  getExternalId(): string {
     return this.externalId;
   }
 
