@@ -4,7 +4,7 @@ import { SteamGamePlatformRepository } from "../repositories/SteamGamePlatformRe
 import { UserSequelizeRepository } from "../repositories/UserSequelizeRepository";
 import { SteamAccountSequelizeRepository } from "../repositories/SteamAccountSequelizeRepository";
 import { SteamAccountReferenceGamesSequelizeRepository } from "../repositories/SteamAccountReferenceGamesSequelizeRepository";
-import { body, param, validationResult } from "express-validator";
+import { body, validationResult } from "express-validator";
 
 export class SteamController {
   static validate(method: string) {
@@ -36,8 +36,10 @@ export class SteamController {
         new SteamAccountReferenceGamesSequelizeRepository()
       );
 
-      res.status(200).json({
-        success: await useCase.storeAccountData(userId, clientIp!),
+      const userFound = await useCase.storeAccountData(userId, clientIp!);
+
+      res.status(userFound ? 200 : 404).json({
+        success: userFound,
       });
     } catch (error) {
       console.log(error);
