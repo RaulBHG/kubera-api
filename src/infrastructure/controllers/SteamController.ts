@@ -4,28 +4,20 @@ import { SteamGamePlatformRepository } from "../repositories/SteamGamePlatformRe
 import { UserSequelizeRepository } from "../repositories/UserSequelizeRepository";
 import { SteamAccountSequelizeRepository } from "../repositories/SteamAccountSequelizeRepository";
 import { SteamAccountReferenceGamesSequelizeRepository } from "../repositories/SteamAccountReferenceGamesSequelizeRepository";
-import { body, validationResult } from "express-validator";
+import { Controller } from "./Controller";
+import Joi from "joi";
 
-export class SteamController {
-  static validate(method: string) {
-    switch (method) {
-      case "storeAccountData": {
-        return [body("user_id").exists().withMessage("user_id is required")];
-      }
-    }
-  }
-  // Sacar este método fuera
-  static handleValidationResult(req: Request, res: Response, next: any) {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    next();
-  }
-
-
+export class SteamController extends Controller {
   async storeAccountData(req: Request, res: Response): Promise<void> {
     try {
+
+      const schema = Joi.object({
+        user_id: Joi.string().required().messages({
+          "any.required": "The user_id field is required.",
+        }),
+      });
+      if(!this.validateRequest(req, res, schema)) return;
+
       const userId = req.body.user_id;
       const clientIp = req.ip;
 

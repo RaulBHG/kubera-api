@@ -2,8 +2,9 @@ import { GetPlatformUseCase } from "../../application/GetPlatformUseCase";
 import { Platform } from "../../domain/entities/Platform";
 import { PlatformSequelizeRepository } from "../../infrastructure/repositories/PlatformSequelizeRepository";
 import { Response } from "express";
+import { Controller } from "./Controller";
 
-export class PlatformController {
+export class PlatformController extends Controller {
   async getAll(res: Response): Promise<void> {
     try {
       const getPlatformUseCase = new GetPlatformUseCase(
