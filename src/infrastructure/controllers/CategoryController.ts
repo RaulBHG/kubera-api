@@ -2,8 +2,9 @@ import { GetCategoryUseCase } from "../../application/GetCategoryUseCase";
 import { Category } from "../../domain/entities/Category";
 import { CategorySequelizeRepository } from "../repositories/CategorySequelizeRepository";
 import { Response } from "express";
+import { Controller } from "./Controller";
 
-export class CategoryController {
+export class CategoryController extends Controller {
   async getAll(res: Response): Promise<void> {
     try {
       const useCase = new GetCategoryUseCase(new CategorySequelizeRepository());
