@@ -17,6 +17,7 @@
     "express": "^4.21.1",
     "express-joi-validation": "^6.0.0",
     "mysql2": "^3.11.5",
+    "pino": "^9.6.0",
     "sequelize": "^6.37.5",
     "uuid": "^11.0.3"
   },
