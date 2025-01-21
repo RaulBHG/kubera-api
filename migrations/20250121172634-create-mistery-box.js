@@ -2,49 +2,50 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("steam_account_reference_games", {
+    await queryInterface.createTable("mistery_boxes", {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.DataTypes.UUID,
         defaultValue: Sequelize.DataTypes.UUIDV4,
       },
-      steam_account_id: {
+      user_id: {
         type: Sequelize.DataTypes.UUID,
-        allowNull: false,
+        allowNull: true,
         references: {
-          model: "steam_accounts", // Table name of the related model
+          model: "users", // Table name of the related model
           key: "id",
         },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+        onUpdate: "SET NULL",
+        onDelete: "SET NULL",
       },
-      steam_game_id: {
-        type: Sequelize.INTEGER,
-      },
-      name: {
-        type: Sequelize.STRING,
-      },
-      playtime_2_weeks: {
-        type: Sequelize.INTEGER,
+      type_id: {
+        type: Sequelize.DataTypes.UUID,
         allowNull: true,
+        references: {
+          model: "mistery_box_types", // Table name of the related model
+          key: "id",
+        },
+        onUpdate: "SET NULL",
+        onDelete: "SET NULL",
       },
-      playtime_forever: {
-        type: Sequelize.INTEGER,
+      expiration: {
+        type: "TIMESTAMP",
+        allowNull: false,
       },
       created_at: {
         allowNull: false,
-        type: 'TIMESTAMP',
+        type: "TIMESTAMP",
         defaultValue: Sequelize.NOW,
       },
       updated_at: {
         allowNull: false,
-        type: 'TIMESTAMP',
+        type: "TIMESTAMP",
         defaultValue: Sequelize.NOW,
       },
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('steam_account_reference_games');
+    await queryInterface.dropTable('mistery_boxes');
   }
 };
