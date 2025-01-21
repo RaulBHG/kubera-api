@@ -1,17 +1,20 @@
-import { GamePlatformAccountGamesRepositoryContract } from '../domain/contracts/GamePlatform/GamePlatformAccountGamesRepositoryContract';
-import { GamePlatformAccountRepositoryContract } from '../domain/contracts/GamePlatform/GamePlatformAccountRepositoryContract';
-import { UserRepositoryContract } from '../domain/contracts/UserRepositoryContract';
-import { GamePlatformAccount } from '../domain/entities/GamePlatformAccount';
-import { User } from '../domain/entities/User';
-import { Uuid } from '../domain/value-objects/Uuid';
-import { ExternalGamePlatformRepositoryContract } from './../domain/contracts/GamePlatform/ExternalGamePlatformRepositoryContract';
+import { GamePlatformAccountGamesRepositoryContract } from "../domain/contracts/GamePlatform/GamePlatformAccountGamesRepositoryContract";
+import { GamePlatformAccountRepositoryContract } from "../domain/contracts/GamePlatform/GamePlatformAccountRepositoryContract";
+import { LoggerContract } from "../domain/contracts/LoggerContract";
+import { UserRepositoryContract } from "../domain/contracts/UserRepositoryContract";
+import { GamePlatformAccount } from "../domain/entities/GamePlatformAccount";
+import { User } from "../domain/entities/User";
+import { LogLevel } from "../domain/value-objects/LogLevel";
+import { Uuid } from "../domain/value-objects/Uuid";
+import { ExternalGamePlatformRepositoryContract } from "./../domain/contracts/GamePlatform/ExternalGamePlatformRepositoryContract";
 
 export class StoreExternalGamePlatformAccountUseCase {
   constructor(
     private readonly externalGamePlatformRepository: ExternalGamePlatformRepositoryContract,
     private readonly userRepository: UserRepositoryContract,
     private readonly gamePlatformRepository: GamePlatformAccountRepositoryContract,
-    private readonly gamePlatformAccountGamesRepository: GamePlatformAccountGamesRepositoryContract
+    private readonly gamePlatformAccountGamesRepository: GamePlatformAccountGamesRepositoryContract,
+    private readonly logger: LoggerContract
   ) {}
 
   async storeAccountData(userIdName: string, userIp: string): Promise<boolean> {
@@ -19,16 +22,36 @@ export class StoreExternalGamePlatformAccountUseCase {
       userIdName
     );
     if (!account) {
-      console.log("Account not found with userId: ", userIdName);
+      this.logger.log("Account not found with userId", {
+        level: LogLevel.ERROR,
+        context: "StoreExternalGamePlatformAccountUseCase",
+        attributes: {
+          userIdName,
+        },
+      });
+
       account = await this.externalGamePlatformRepository.getAccountByUserName(
         userIdName
       );
       if (!account) {
-        console.log("Account not found with userName: ", userIdName);
+        this.logger.log("Account not found with userName", {
+          level: LogLevel.ERROR,
+          context: "StoreExternalGamePlatformAccountUseCase",
+          attributes: {
+            userIdName,
+          },
+        });
         return false;
       }
     }
-    console.log("Account found: ", account);
+
+    this.logger.log("Account found", {
+      context: "StoreExternalGamePlatformAccountUseCase",
+      attributes: {
+        account,
+      },
+    });
+
     const user = await this.userRepository.create(
       new User(Uuid.create(), userIp, null)
     );
@@ -41,18 +64,34 @@ export class StoreExternalGamePlatformAccountUseCase {
       )
     );
 
-    const externalGames = await this.externalGamePlatformRepository.getAccountReferenceGamesByAccount(
-      userAccount,
-      10
-    );
+    const externalGames =
+      await this.externalGamePlatformRepository.getAccountReferenceGamesByAccount(
+        userAccount,
+        10
+      );
     if (!externalGames) {
-      console.log("No games found for account: ", userAccount);
+      this.logger.log("No games found for account", {
+        level: LogLevel.ERROR,
+        context: "StoreExternalGamePlatformAccountUseCase",
+        attributes: {
+          userAccount,
+        },
+      });
       return false;
     }
 
-    const gamesSaved = await this.gamePlatformAccountGamesRepository.createMultiple(externalGames);
+    const gamesSaved =
+      await this.gamePlatformAccountGamesRepository.createMultiple(
+        externalGames
+      );
     if (!gamesSaved) {
-      console.log("Games not saved: ", externalGames);
+      this.logger.log("Games not saved", {
+        level: LogLevel.ERROR,
+        context: "StoreExternalGamePlatformAccountUseCase",
+        attributes: {
+          externalGames,
+        },
+      });
       return false;
     }
 

@@ -2,14 +2,17 @@ import axios from "axios";
 import { ExternalGamePlatformRepositoryContract } from "../../domain/contracts/GamePlatform/ExternalGamePlatformRepositoryContract";
 import { GamePlatformAccount } from "../../domain/entities/GamePlatformAccount";
 import { GamePlatformAccountGame } from "../../domain/entities/GamePlatformAccountGame";
+import { PinoLoggerAdapter } from "../adapters/log/PinoLoggerAdapter";
+import { LogLevel } from "../../domain/value-objects/LogLevel";
 
 export class SteamGamePlatformRepository
   implements ExternalGamePlatformRepositoryContract
 {
+  constructor(private logger: PinoLoggerAdapter) {}
+
   async getAccountByUserId(
     userId: string
   ): Promise<GamePlatformAccount | null> {
-    console.log("getAccountByUserId");
     return await axios
       .get(`${process.env.STEAM_API_URL}/IPlayerService/GetOwnedGames/v1`, {
         params: {
@@ -19,17 +22,35 @@ export class SteamGamePlatformRepository
           include_played_free_games: false,
         },
       })
-      .then(function (response) {
-        console.log(response);
+      .then((response) => {
+        this.logger.log("requested", {
+          context: "getAccountByUserId",
+          attributes: {
+            status: response.status,
+          },
+        });
         if (response.status === 200) {
           return new GamePlatformAccount(null, null, null, userId);
         } else {
-          console.error(`Unexpected response status: ${response.status}`);
+          this.logger.log("unexpected status code", {
+            level: LogLevel.ERROR,
+            context: "getAccountByUserId",
+            attributes: {
+              status: response.status,
+            },
+          });
           return null;
         }
       })
-      .catch(function (error) {
-        console.log(error);
+      .catch((error) => {
+        this.logger.log("fatal error", {
+          level: LogLevel.FATAL,
+          context: "getAccountByUserId",
+          attributes: {
+            message: error.message,
+            stack: error.stack,
+          },
+        });
         return null;
       });
   }
@@ -37,7 +58,6 @@ export class SteamGamePlatformRepository
   async getAccountByUserName(
     userName: string
   ): Promise<GamePlatformAccount | null> {
-    console.log("getAccountByUserName");
     const userId = await axios
       .get(`${process.env.STEAM_API_URL}/ISteamUser/ResolveVanityURL/v1`, {
         params: {
@@ -45,17 +65,35 @@ export class SteamGamePlatformRepository
           vanityurl: userName,
         },
       })
-      .then(function (response) {
-        console.log(`Response: ${response.status}. Data: ${response.data}`);
+      .then((response) => {
+        this.logger.log("requested", {
+          context: "getAccountByUserName",
+          attributes: {
+            status: response.status,
+          },
+        });
         if (response.status === 200 && response.data?.response?.success === 1) {
           return response.data.response.steamid;
         } else {
-          console.error(`Unexpected response status: ${response.status}`);
+          this.logger.log("unexpected status code", {
+            level: LogLevel.ERROR,
+            context: "getAccountByUserName",
+            attributes: {
+              status: response.status,
+            },
+          });
           return null;
         }
       })
-      .catch(function (error) {
-        console.log(error);
+      .catch((error) => {
+        this.logger.log("fatal error", {
+          level: LogLevel.FATAL,
+          context: "getAccountByUserName",
+          attributes: {
+            message: error.message,
+            stack: error.stack,
+          },
+        });
         return null;
       });
 
@@ -70,7 +108,6 @@ export class SteamGamePlatformRepository
     account: GamePlatformAccount,
     limit: number
   ): Promise<GamePlatformAccountGame[] | null> {
-    console.log("getAccountReferenceGamesByAccount");
     return await axios
       .get(`${process.env.STEAM_API_URL}/IPlayerService/GetOwnedGames/v1`, {
         params: {
@@ -80,8 +117,13 @@ export class SteamGamePlatformRepository
           include_played_free_games: true,
         },
       })
-      .then(function (response) {
-        console.log(`Response: ${response.status}. Data: ${response.data}`);
+      .then((response) => {
+        this.logger.log("requested", {
+          context: "getAccountReferenceGamesByAccount",
+          attributes: {
+            status: response.status,
+          },
+        });
         if (response.status === 200) {
           return response.data.response.games
             .sort((gameA: any, gameB: any) => {
@@ -106,12 +148,25 @@ export class SteamGamePlatformRepository
               );
             });
         } else {
-          console.error(`Unexpected response status: ${response.status}`);
+          this.logger.log("unexpected satus code", {
+            level: LogLevel.ERROR,
+            context: "getAccountReferenceGamesByAccount",
+            attributes: {
+              status: response.status,
+            },
+          });
           return null;
         }
       })
-      .catch(function (error) {
-        console.log(error);
+      .catch((error) => {
+        this.logger.log("fatal error", {
+          level: LogLevel.FATAL,
+          context: "getAccountReferenceGamesByAccount",
+          attributes: {
+            message: error.message,
+            stack: error.stack,
+          },
+        });
         return null;
       });
   }

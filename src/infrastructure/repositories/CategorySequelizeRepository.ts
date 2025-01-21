@@ -1,5 +1,6 @@
 import { CategoryRepositoryContract } from "../../domain/contracts/repositories/CategoryRepositoryContract";
 import { Category } from "../../domain/entities/Category";
+import { Uuid } from "../../domain/value-objects/Uuid";
 
 const CategoryModel = require("../../../models").category;
 
@@ -62,6 +63,7 @@ export class CategorySequelizeRepository implements CategoryRepositoryContract {
 
         if (!updatedCategory) {
           return await CategoryModel.create({
+            id: Uuid.create().getValue(),
             slug: category.getSlug(),
             name: category.getName(),
             visible: category.isVisible(),
@@ -87,11 +89,13 @@ export class CategorySequelizeRepository implements CategoryRepositoryContract {
 
   async save(category: Category): Promise<Category> {
     const createdCategory = await CategoryModel.create({
+      id: Uuid.create().getValue(),
       slug: category.getSlug(),
       name: category.getName(),
       external_id: category.getExternalId(),
       visible: category.isVisible(),
     });
+
     return new Category(
       createdCategory.id,
       createdCategory.slug,

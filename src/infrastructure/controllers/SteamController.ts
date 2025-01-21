@@ -6,26 +6,29 @@ import { SteamAccountSequelizeRepository } from "../repositories/SteamAccountSeq
 import { SteamAccountReferenceGamesSequelizeRepository } from "../repositories/SteamAccountReferenceGamesSequelizeRepository";
 import { Controller } from "./Controller";
 import Joi from "joi";
+import { PinoLoggerAdapter } from "../adapters/log/PinoLoggerAdapter";
 
 export class SteamController extends Controller {
   async storeAccountData(req: Request, res: Response): Promise<void> {
-    try {
+    const loggerAdapter = new PinoLoggerAdapter();
 
+    try {
       const schema = Joi.object({
         user_id: Joi.string().required().messages({
           "any.required": "The user_id field is required.",
         }),
       });
-      if(!this.validateRequest(req, res, schema)) return;
+      if (!this.validateRequest(req, res, schema)) return;
 
       const userId = req.body.user_id;
       const clientIp = req.ip;
 
       const useCase = new StoreExternalGamePlatformAccountUseCase(
-        new SteamGamePlatformRepository(),
+        new SteamGamePlatformRepository(loggerAdapter),
         new UserSequelizeRepository(),
         new SteamAccountSequelizeRepository(),
-        new SteamAccountReferenceGamesSequelizeRepository()
+        new SteamAccountReferenceGamesSequelizeRepository(),
+        loggerAdapter
       );
 
       const userFound = await useCase.storeAccountData(userId, clientIp!);
@@ -33,8 +36,15 @@ export class SteamController extends Controller {
       res.status(userFound ? 200 : 404).json({
         success: userFound,
       });
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      await loggerAdapter.log("Fatal error during storing steam account data", {
+        context: "SteamController.storeAccountData",
+        attributes: {
+          message: error.message,
+          stack: error.stack,
+        },
+      });
+
       res.status(500).json({
         success: false,
         message: "An error occurred while processing the request",
