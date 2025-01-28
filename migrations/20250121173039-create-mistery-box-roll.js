@@ -34,7 +34,7 @@ module.exports = {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
-      item_number: {
+      option_number: {
         type: Sequelize.INTEGER,
       },
       created_at: {

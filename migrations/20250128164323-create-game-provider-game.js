@@ -42,6 +42,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
+      img_url: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       external_data: {
         type: Sequelize.JSON,
         allowNull: true,

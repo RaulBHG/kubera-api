@@ -79,6 +79,28 @@ components:
         visible:
           type: boolean
           example: true
+    reroll_option:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Uuid of reroll_option
+        reroll_option:
+          type: integer
+          example: 1
+        rejected: 
+          type: boolean
+          example: false
+        name:
+          type: string
+        region:
+          type: string
+          nullable: true
+        img_url:
+          type: string
+          nullable: true
+        platform:
+          $ref: '#/components/schemas/platform'
 paths:
   '/api/mystery-box/category':
     get:
@@ -184,7 +206,7 @@ paths:
             example: 12,32,56,78
           description: Una lista separada por comas de los identificadores de las plataformas seleccionadas
         - in: query
-          name: rerol_option
+          name: reroll_option
           required: false
           schema:
             type: integer
@@ -207,6 +229,8 @@ paths:
                   success:
                     example: true
                     type: boolean
+                  data:
+                    $ref: '#/components/schemas/reroll_option'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '422':

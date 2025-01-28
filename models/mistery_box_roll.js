@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       viewed: DataTypes.BOOLEAN,
       rejected: DataTypes.BOOLEAN,
       selected: DataTypes.BOOLEAN,
-      item_number: DataTypes.INTEGER,
+      option_number: DataTypes.INTEGER,
     },
     {
       sequelize,
