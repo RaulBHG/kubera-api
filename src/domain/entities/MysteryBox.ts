@@ -1,15 +1,15 @@
 import { Uuid } from "../value-objects/Uuid";
 import { Category } from "./Category";
-import { MisteryBoxType } from "./MisteryBoxType";
+import { MysteryBoxType } from "./MysteryBoxType";
 import { Platform } from "./Platform";
-import { MisteryBoxRoll } from './MisteryBoxRoll';
+import { MysteryBoxRoll } from './MysteryBoxRoll';
 
-export class MisteryBox {
+export class MysteryBox {
   constructor(
     private readonly id: Uuid | null,
     private readonly userId: string | null,
-    private readonly type: MisteryBoxType | null,
-    private readonly misteryBoxRolls: MisteryBoxRoll[] | null,
+    private readonly type: MysteryBoxType | null,
+    private readonly mysteryBoxRolls: MysteryBoxRoll[] | null,
     private readonly expirationDate: Date,
     private readonly categories: Category[] | null,
     private readonly platforms: Platform[] | null
@@ -23,12 +23,12 @@ export class MisteryBox {
     return this.userId;
   }
 
-  getType(): MisteryBoxType | null {
+  getType(): MysteryBoxType | null {
     return this.type;
   }
 
-  getMisteryBoxRolls(): MisteryBoxRoll[] | null {
-    return this.misteryBoxRolls;
+  getMysteryBoxRolls(): MysteryBoxRoll[] | null {
+    return this.mysteryBoxRolls;
   }
 
   getExpirationDate(): Date {

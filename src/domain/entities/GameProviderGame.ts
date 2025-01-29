@@ -4,7 +4,7 @@ import { Platform } from "./Platform";
 export class GameProviderGame {
   constructor(
     private readonly id: Uuid | null,
-    private readonly misteryBoxRollId: Uuid,
+    private readonly mysteryBoxRollId: Uuid,
     private readonly name: string,
     private readonly imgUrl: string | null,
     private readonly region: string | null,
@@ -16,8 +16,8 @@ export class GameProviderGame {
     return this.id;
   }
 
-  getMisteryBoxRollId(): Uuid {
-    return this.misteryBoxRollId;
+  getMysteryBoxRollId(): Uuid {
+    return this.mysteryBoxRollId;
   }
 
   getName(): string {

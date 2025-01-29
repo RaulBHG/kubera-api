@@ -1,6 +1,6 @@
 import { Uuid } from "../value-objects/Uuid";
 
-export class MisteryBoxType {
+export class MysteryBoxType {
   constructor(
     private readonly id: Uuid | null,
     private readonly slug: string,

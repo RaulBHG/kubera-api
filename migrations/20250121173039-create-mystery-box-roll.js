@@ -2,18 +2,18 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("mistery_box_rolls", {
+    await queryInterface.createTable("mystery_box_rolls", {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.DataTypes.UUID,
         defaultValue: Sequelize.DataTypes.UUIDV4,
       },
-      mistery_box_id: {
+      mystery_box_id: {
         type: Sequelize.DataTypes.UUID,
         allowNull: true,
         references: {
-          model: "mistery_boxes", // Table name of the related model
+          model: "mystery_boxes", // Table name of the related model
           key: "id",
         },
         onUpdate: "SET NULL",
@@ -50,6 +50,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('mistery_box_rolls');
+    await queryInterface.dropTable('mystery_box_rolls');
   }
 };

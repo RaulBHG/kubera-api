@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
   piggy_bank_log.init(
     {
       transaction_id: DataTypes.STRING,
-      mistery_box: DataTypes.STRING,
+      mystery_box: DataTypes.STRING,
       total_euro_ammount: DataTypes.FLOAT,
     },
     {

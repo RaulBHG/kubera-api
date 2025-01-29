@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("mistery_box_types", {
+    await queryInterface.createTable("mystery_box_types", {
       id: {
         allowNull: false,
         primaryKey: true,
@@ -42,6 +42,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('mistery_box_types');
+    await queryInterface.dropTable('mystery_box_types');
   }
 };

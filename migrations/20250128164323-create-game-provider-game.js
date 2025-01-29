@@ -13,7 +13,7 @@ module.exports = {
         type: Sequelize.DataTypes.UUID,
         allowNull: true,
         references: {
-          model: "mistery_box_rolls", // Table name of the related model
+          model: "mystery_box_rolls", // Table name of the related model
           key: "id",
         },
         onUpdate: "SET NULL",

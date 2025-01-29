@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class mistery_box_roll extends Model {
+  class mystery_box_roll extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  mistery_box_roll.init(
+  mystery_box_roll.init(
     {
       viewed: DataTypes.BOOLEAN,
       rejected: DataTypes.BOOLEAN,
@@ -22,9 +22,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: "mistery_box_roll",
+      modelName: "mystery_box_roll",
       underscored: true,
     }
   );
-  return mistery_box_roll;
+  return mystery_box_roll;
 };
