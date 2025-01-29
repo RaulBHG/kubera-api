@@ -1,6 +1,9 @@
-import { GameProviderGame } from "../entities/GameProviderGame";
+import { MysteryBoxRoll } from "../entities/MysteryBoxRoll";
 import { MysteryBox } from "./../entities/MysteryBox";
 
 export interface GameProviderRepositoryContract {
-  findByMysteryBoxAndAmount(mysteryBox: MysteryBox, euroAmount: number): Promise<GameProviderGame[] | null>;
+  findRollByMysteryBoxAndAmount(
+    mysteryBox: MysteryBox,
+    euroAmount: number
+  ): Promise<MysteryBoxRoll[] | null>;
 }

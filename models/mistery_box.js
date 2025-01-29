@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       user_id: DataTypes.STRING,
       type_id: DataTypes.STRING,
       expiration: DataTypes.DATE,
+      region: DataTypes.STRING,
     },
     {
       sequelize,

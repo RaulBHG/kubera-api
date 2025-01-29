@@ -91,16 +91,24 @@ components:
         rejected: 
           type: boolean
           example: false
-        name:
-          type: string
-        region:
-          type: string
-          nullable: true
-        img_url:
-          type: string
-          nullable: true
-        platform:
-          $ref: '#/components/schemas/platform'
+        games:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Uuid of reroll_option_game
+              name:
+                type: string
+              region:
+                type: string
+                nullable: true
+              img_url:
+                type: string
+                nullable: true
+              platform:
+                $ref: '#/components/schemas/platform'
 paths:
   '/api/mystery-box/category':
     get:
@@ -186,20 +194,17 @@ paths:
             type: string
           description: El id del usuario en nuestro sistema.
         - in: query
-          required: true
           name: categories
           schema:
             type: string
             example: 12,32,56,78
           description: Una lista separada por comas de los identificadores de las categorías seleccionadas
         - in: query
-          required: true
           name: country_code
           schema:
             type: string
             example: ES
         - in: query
-          required: true
           name: platforms
           schema:
             type: string

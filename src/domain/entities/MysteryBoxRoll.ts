@@ -15,4 +15,30 @@ export class MysteryBoxRoll {
   getId(): Uuid | null {
     return this.id;
   }
+
+  getMysteryBoxId(): Uuid | null {
+    return this.mysteryBoxId;
+  }
+
+  getViewed(): boolean {
+    return this.viewed;
+  }
+
+  getRejected(): boolean {
+    return this.rejected;
+  }
+
+  getSelected(): boolean {
+    return this.selected;
+  }
+
+  getOptionNumber(): number | null {
+    return this.optionNumber;
+  }
+
+  getGameProviderGames(): GameProviderGame[] | null {
+    return this.gameProviderGames;
+  }
+
+
 }

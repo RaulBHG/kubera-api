@@ -7,10 +7,11 @@ import { MysteryBoxRoll } from './MysteryBoxRoll';
 export class MysteryBox {
   constructor(
     private readonly id: Uuid | null,
-    private readonly userId: string | null,
+    private readonly userId: Uuid | null,
     private readonly type: MysteryBoxType | null,
     private readonly mysteryBoxRolls: MysteryBoxRoll[] | null,
-    private readonly expirationDate: Date,
+    private readonly expiration: Date,
+    private readonly region: string | null,
     private readonly categories: Category[] | null,
     private readonly platforms: Platform[] | null
   ) {}
@@ -19,7 +20,7 @@ export class MysteryBox {
     return this.id;
   }
 
-  getUserId(): string | null {
+  getUserId(): Uuid | null {
     return this.userId;
   }
 
@@ -32,7 +33,11 @@ export class MysteryBox {
   }
 
   getExpirationDate(): Date {
-    return this.expirationDate;
+    return this.expiration;
+  }
+
+  getRegion(): string | null {
+    return this.region;
   }
 
   getCategories(): Category[] | null {
@@ -42,5 +47,4 @@ export class MysteryBox {
   getPlatforms(): Platform[] | null {
     return this.platforms;
   }
-
 }

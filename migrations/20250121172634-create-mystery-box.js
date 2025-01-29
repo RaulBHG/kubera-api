@@ -33,6 +33,10 @@ module.exports = {
         type: "TIMESTAMP",
         allowNull: false,
       },
+      region: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       created_at: {
         allowNull: false,
         type: "TIMESTAMP",
