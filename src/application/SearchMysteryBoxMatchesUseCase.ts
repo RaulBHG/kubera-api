@@ -79,6 +79,7 @@ export class SearchMysteryBoxMatchesUseCase {
 
       const finalMysteryBox = await this.mysteryBoxRepository.assignRolls(rolls);
 
+      // If has been rejected bock on canjeo
       return await this.formatResult(finalMysteryBox, rerollOption);
 
     } else {

@@ -32,7 +32,7 @@ export class MysteryBox {
     return this.mysteryBoxRolls;
   }
 
-  getExpirationDate(): Date {
+  getExpiration(): Date {
     return this.expiration;
   }
 

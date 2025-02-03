@@ -5,5 +5,5 @@ import { MysteryBoxRoll } from './../entities/MysteryBoxRoll';
 export interface MysteryBoxRepositoryContract {
   create(mysteryBox: MysteryBox): Promise<MysteryBox>;
   getActiveByUserId(userId: Uuid): Promise<MysteryBox | null>;
-  assignRolls(mysteryBoxRolls: MysteryBoxRoll[]): Promise<MysteryBox>;
+  assignRolls(mysteryBox: MysteryBox, mysteryBoxRolls: MysteryBoxRoll[]): Promise<MysteryBox>;
 }

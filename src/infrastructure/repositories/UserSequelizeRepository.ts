@@ -17,4 +17,9 @@ export class UserSequelizeRepository implements UserRepositoryContract {
       newUser.email
     );
   }
+
+  async exists(userId: Uuid): Promise<boolean> {
+    const user = await UserModel.findByPk(userId.getValue());
+    return !!user;
+  }
 }
