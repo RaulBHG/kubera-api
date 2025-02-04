@@ -1,12 +1,12 @@
-import { GamePlatformAccountGamesRepositoryContract } from "../domain/contracts/GamePlatform/GamePlatformAccountGamesRepositoryContract";
-import { GamePlatformAccountRepositoryContract } from "../domain/contracts/GamePlatform/GamePlatformAccountRepositoryContract";
+import { GamePlatformAccountGamesRepositoryContract } from "../domain/contracts/game-platform/GamePlatformAccountGamesRepositoryContract";
+import { GamePlatformAccountRepositoryContract } from "../domain/contracts/game-platform/GamePlatformAccountRepositoryContract";
 import { LoggerContract } from "../domain/contracts/LoggerContract";
 import { UserRepositoryContract } from "../domain/contracts/UserRepositoryContract";
 import { GamePlatformAccount } from "../domain/entities/GamePlatformAccount";
 import { User } from "../domain/entities/User";
 import { LogLevel } from "../domain/value-objects/LogLevel";
 import { Uuid } from "../domain/value-objects/Uuid";
-import { ExternalGamePlatformRepositoryContract } from "./../domain/contracts/GamePlatform/ExternalGamePlatformRepositoryContract";
+import { ExternalGamePlatformRepositoryContract } from "../domain/contracts/game-platform/ExternalGamePlatformRepositoryContract";
 
 export class StoreExternalGamePlatformAccountUseCase {
   constructor(

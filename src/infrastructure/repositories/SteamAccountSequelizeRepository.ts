@@ -1,4 +1,4 @@
-import { GamePlatformAccountRepositoryContract } from "../../domain/contracts/GamePlatform/GamePlatformAccountRepositoryContract";
+import { GamePlatformAccountRepositoryContract } from "../../domain/contracts/game-platform/GamePlatformAccountRepositoryContract";
 import { GamePlatformAccount } from "../../domain/entities/GamePlatformAccount";
 import { Uuid } from "../../domain/value-objects/Uuid";
 

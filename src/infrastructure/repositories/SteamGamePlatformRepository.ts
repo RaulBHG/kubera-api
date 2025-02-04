@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ExternalGamePlatformRepositoryContract } from "../../domain/contracts/GamePlatform/ExternalGamePlatformRepositoryContract";
+import { ExternalGamePlatformRepositoryContract } from "../../domain/contracts/game-platform/ExternalGamePlatformRepositoryContract";
 import { GamePlatformAccount } from "../../domain/entities/GamePlatformAccount";
 import { GamePlatformAccountGame } from "../../domain/entities/GamePlatformAccountGame";
 import { PinoLoggerAdapter } from "../adapters/log/PinoLoggerAdapter";
