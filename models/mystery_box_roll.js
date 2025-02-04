@@ -27,6 +27,9 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "mystery_box_roll",
       underscored: true,
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     }
   );
   return mystery_box_roll;

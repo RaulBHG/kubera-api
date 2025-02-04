@@ -22,6 +22,9 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "platform",
       underscored: true,
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     }
   );
   return platform;

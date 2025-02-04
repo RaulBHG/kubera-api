@@ -23,6 +23,9 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "piggy_bank_log",
       underscored: true,
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     }
   );
   return piggy_bank_log;
