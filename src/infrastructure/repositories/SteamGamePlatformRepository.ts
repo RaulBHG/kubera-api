@@ -201,7 +201,6 @@ export class SteamGamePlatformRepository
     // TODO: TIENES QUE DEVOLVER ALLOWEDGAMES CON SUS REFERENTES CATEGORÍAS
     // TODO: PENDIENTE BUSCAR DE LOS ENCONTRADOS PRIORIZAR LOS QUE CONTENGAN ALGUNA CATEGORÍA DE LAS YA GUSTADAS
   }
-    
 
   private async getGameCategories(
     game: GamePlatformAccountGame
@@ -257,92 +256,126 @@ export class SteamGamePlatformRepository
     region: string,
     euroAmount: number
   ): Promise<any[]> {
-    const query = JSON.stringify({
-      query: {
-        start: "0",
-        count: "10000",
-        filters: {
-          regional_top_n_sellers: "30000",
-          global_top_n_sellers: "50000",
-          released_only: true,
-          price_filters: { exclude_free_items: true },
-          type_filters: {
-            include_apps: "",
-            include_packages: "",
-            include_bundles: "",
-            include_games: true,
-            include_demos: "",
-            include_mods: "",
-            include_dlc: "",
-            include_software: "",
-            include_video: "",
-            include_hardware: "",
-            include_series: "",
-            include_music: "",
-          },
-          tagids_must_match: [
-            {
-              tagids: categories?.map((category) => category.getExternalId()),
-            },
-          ],
-        },
-      },
-      context: {
-        language: "",
-        country_code: region,
-      },
-      data_request: {
-        include_ratings: false,
-        include_basic_info: false,
-      },
-    });
+    // The maximum amount of games to request is 10000
+    const maxGamesToRequest = Number(process.env.MAX_GAMES_TO_REQUEST ?? 10000);
+    // The start index to request the games
+    let start = 0;
+    let items: any[] = [];
 
-    return await axios
-        .get(`${process.env.STEAM_API_URL}/IStoreQueryService/Query/v1`, {
+    // Request games until the items array has the maxGamesToRequest length
+    while (items.length < maxGamesToRequest) {
+
+      const query = JSON.stringify({
+        query: {
+          start: start.toString(),
+          count: (maxGamesToRequest - items.length).toString(),
+          filters: {
+            regional_top_n_sellers: "30000",
+            global_top_n_sellers: "50000",
+            released_only: true,
+            price_filters: { exclude_free_items: true },
+            type_filters: {
+              include_apps: "",
+              include_packages: "",
+              include_bundles: "",
+              include_games: true,
+              include_demos: "",
+              include_mods: "",
+              include_dlc: "",
+              include_software: "",
+              include_video: "",
+              include_hardware: "",
+              include_series: "",
+              include_music: "",
+            },
+            tagids_must_match: [
+              {
+                tagids: categories?.map((category) => category.getExternalId()),
+              },
+            ],
+          },
+        },
+        context: {
+          language: "",
+          country_code: region,
+        },
+        data_request: {
+          include_ratings: false,
+          include_basic_info: false,
+        },
+      });
+
+      const response = await axios.get(
+        `${process.env.STEAM_API_URL}/IStoreQueryService/Query/v1`,
+        {
           params: {
             key: process.env.STEAM_API_KEY,
             query: query,
-            
           },
-        })
-        .then((response) => {
-          this.logger.log("requested", {
-            context: "requestGames",
-            attributes: {
-              status: response.status,
-            },
-          });
-          if (response.status === 200) {
-            const items = response.data.store_items;
-            return items.filter((item: any) => {
-              const itemName = item.name;
-              // Validate that the item name does not end with a number preceded by a space and contains only normal alphabet characters
-              const isValidName = /^[a-zA-Z\s]+$/.test(itemName) && !/\s\d$/.test(itemName);
+        }
+      );
 
-              const price = item.best_purchase_option.original_price_in_cents / 100;
-              const availableAmount = euroAmount * (mysteryBoxType?.getMultiplier() ?? 1);
-              const amountToGet2Games = Number(process.env.AMOUNT_TO_GET_2_GAMES);
+      this.logger.log("requested", {
+        context: "requestGames",
+        attributes: {
+          status: response.status,
+        },
+      });
 
-              const isPriceValid = (price <= availableAmount) && 
-                     ((availableAmount < amountToGet2Games && price >= 0.95 * availableAmount) || 
-                      (availableAmount >= amountToGet2Games && price >= 0.30 * availableAmount));
+      if (response.status === 200) {
 
-              return isValidName && isPriceValid && this.checkGameValorations(item.id);
-            });
-          } else {
-            throw new Error(
-              "Unexpected status code " +
-                response.status +
-                " for getAccountByUserId with response " +
-                JSON.stringify(response.data)
-            );
-          }
+        // Filter the steam response to get only the games that match the criteria
+        const newItems = response.data.store_items.filter((item: any) => {
+
+          // A valid name is only composed by letters and spaces and doesn't end with a number
+          const itemName = item.name;
+          const isValidName =
+            /^[a-zA-Z\s]+$/.test(itemName) && !/\s\d$/.test(itemName);
+
+          // Check if the price is valid
+          const price = item.best_purchase_option.original_price_in_cents / 100;
+          const availableAmount =
+            euroAmount * (mysteryBoxType?.getMultiplier() ?? 1);
+          const amountToGet2Games = Number(process.env.AMOUNT_TO_GET_2_GAMES);
+          const isPriceValid =
+            price <= availableAmount &&
+            ((availableAmount < amountToGet2Games &&
+              price >= 0.95 * availableAmount) ||
+              (availableAmount >= amountToGet2Games &&
+                price >= 0.3 * availableAmount));
+
+          // Check if the game has enough valorations
+          return (
+            isValidName && isPriceValid && this.checkGameValorations(item.id)
+          );
+
         });
+
+        // Add the new items to the items array
+        items = items.concat(newItems);
+
+        // If the total of items requested is greater than the total of items available, break the loop
+        const totalMatchingRecords =
+          response.data.metadata.total_matching_records;
+        if (start + newItems.length >= totalMatchingRecords) break;
+        
+        start += newItems.length;
+
+      } else {
+        throw new Error(
+          "Unexpected status code " +
+            response.status +
+            " for getAccountByUserId with response " +
+            JSON.stringify(response.data)
+        );
+      }
+    }
+
+    return items;
   }
 
-  private async checkGameValorations(
-    gameExternalId: number,
-  ): Promise<boolean> {
+
+  private async checkGameValorations(gameExternalId: number): Promise<boolean> {
     return await axios
       .get(`${process.env.STEAM_SPY_URL}`, {
         params: {
