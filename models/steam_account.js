@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "user_id",
         as: "user",
       });
+      steam_account.hasMany(models.steam_account_reference_game, {
+        foreignKey: "steam_account_id",
+        as: "steam_account_reference_games",
+      });
     }
   }
   steam_account.init(

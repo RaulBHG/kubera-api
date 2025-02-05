@@ -1,6 +1,6 @@
 import { MysteryBoxRepositoryContract } from "../../domain/contracts/MysteryBoxRepositoryContract";
 import { MysteryBox } from "../../domain/entities/MysteryBox";
-import { Uuid } from './../../domain/value-objects/Uuid';
+import { Uuid } from '../../domain/value-objects/Uuid';
 import { MysteryBoxType } from "../../domain/entities/MysteryBoxType";
 import { Category } from "../../domain/entities/Category";
 import { Platform } from "../../domain/entities/Platform";
@@ -9,11 +9,8 @@ import { GameProviderGame } from "../../domain/entities/GameProviderGame";
 
 const MysteryModel = require("../../../models").mystery_box;
 
-export class MysteryBoxSequelizeSequelizeRepository
-  implements MysteryBoxRepositoryContract
-{
+export class MisteryBoxSequelizeRepository implements MysteryBoxRepositoryContract {
   async create(mysteryBox: MysteryBox): Promise<MysteryBox> {
-
     const newMysteryBox = await MysteryModel.create({
       id: mysteryBox?.getId()?.getValue() ?? Uuid.create().getValue(),
       user_id: mysteryBox?.getUserId()?.getValue(),
@@ -48,10 +45,12 @@ export class MysteryBoxSequelizeSequelizeRepository
     return await this.fromSequelizetoEntity(mysteryBox);
   }
 
-  async assignRolls(mysteryBox: MysteryBox, mysteryBoxRolls: MysteryBoxRoll[]): Promise<MysteryBox> {
+  async assignRolls(
+    mysteryBox: MysteryBox,
+    mysteryBoxRolls: MysteryBoxRoll[]
+  ): Promise<MysteryBox> {
     const rolls = await Promise.all(
       mysteryBoxRolls.map(async (roll) => {
-
         const [assignedRoll, created] = await MysteryModel.rolls.findOrCreate({
           where: { id: roll?.getId()?.getValue() ?? Uuid.create().getValue() },
           defaults: {
@@ -71,23 +70,25 @@ export class MysteryBoxSequelizeSequelizeRepository
         }
 
         return assignedRoll;
-
       })
     );
 
-    return await this.fromSequelizetoEntity(MysteryModel.findByPk(mysteryBox?.getId()?.getValue()));
+    return await this.fromSequelizetoEntity(
+      MysteryModel.findByPk(mysteryBox?.getId()?.getValue())
+    );
   }
 
-
   private async fromSequelizetoEntity(mysteryBox: any): Promise<MysteryBox> {
-    const mysteryBoxType = await mysteryBox.type || null;
-    const typeEntity = mysteryBoxType ? new MysteryBoxType(
-      new Uuid(mysteryBoxType.id),
-      mysteryBoxType.slug,
-      mysteryBoxType.name,
-      mysteryBoxType.percentage,
-      mysteryBoxType.multiplier
-    ) : null;
+    const mysteryBoxType = (await mysteryBox.type) || null;
+    const typeEntity = mysteryBoxType
+      ? new MysteryBoxType(
+          new Uuid(mysteryBoxType.id),
+          mysteryBoxType.slug,
+          mysteryBoxType.name,
+          mysteryBoxType.percentage,
+          mysteryBoxType.multiplier
+        )
+      : null;
 
     const categories = await mysteryBox.getCategories();
     const categoryEntities = categories.map(
@@ -142,7 +143,6 @@ export class MysteryBoxSequelizeSequelizeRepository
           )
         )
     );
-
 
     return new MysteryBox(
       new Uuid(mysteryBox.id),

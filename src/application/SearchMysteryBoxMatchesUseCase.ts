@@ -7,6 +7,9 @@ import { MysteryBoxTypeRepositoryContract } from '../domain/contracts/MysteryBox
 import { GameProviderRepositoryContract } from '../domain/contracts/GameProviderRepositoryContract';
 import { CategoryRepositoryContract } from '../domain/contracts/CategoryRepositoryContract';
 import { PlatformRepositoryContract } from '../domain/contracts/PlatformRepositoryContract';
+import { GamePlatformAccountGamesRepositoryContract } from '../domain/contracts/game-platform/GamePlatformAccountGamesRepositoryContract';
+import { ExternalGamePlatformRepositoryContract } from '../domain/contracts/game-platform/ExternalGamePlatformRepositoryContract';
+import { MysteryBoxRoll } from '../domain/entities/MysteryBoxRoll';
 export class SearchMysteryBoxMatchesUseCase {
   constructor(
     private readonly userRepository: UserRepositoryContract,
@@ -15,6 +18,8 @@ export class SearchMysteryBoxMatchesUseCase {
     private readonly gameProviderRepository: GameProviderRepositoryContract,
     private readonly categoryRepository: CategoryRepositoryContract,
     private readonly platformRepository: PlatformRepositoryContract,
+    private readonly gamePlatformAccountGamesRepository: GamePlatformAccountGamesRepositoryContract,
+    private readonly externalGamePlatformRepository: ExternalGamePlatformRepositoryContract
   ) {}
 
   async searchMatches(
@@ -28,6 +33,7 @@ export class SearchMysteryBoxMatchesUseCase {
     const userExists = await this.userRepository.exists(userIdUuid);
     if (!userExists) throw new Error(`User does not exists with id ${userId}`);
 
+    // TODO: Preparar rollback en caso de cualquier error
     // TODO: Validates payment
     // TODO: Validates payment
 
@@ -65,11 +71,11 @@ export class SearchMysteryBoxMatchesUseCase {
         platforms
       );
 
-      const rolls =
-        await this.gameProviderRepository.findRollByMysteryBoxAndAmount(
-          mysteryBoxNoRolls,
-          30
-        );
+      const rolls = await this.getThreeUniqueMysteryBoxRolls(
+        mysteryBoxNoRolls,
+        userIdUuid,
+      );
+
       if (!rolls)
         throw new Error(
           `Could not get rolls for mystery box with id ${mysteryBoxNoRolls.getId()}`
@@ -84,10 +90,59 @@ export class SearchMysteryBoxMatchesUseCase {
 
       // If has been rejected bock on canjeo
       return await this.formatResult(finalMysteryBox, rerollOption);
-
     } else {
       return await this.formatResult(activeMysteryBox, rerollOption);
     }
+  }
+
+  async getThreeUniqueMysteryBoxRolls(
+    mysteryBox: MysteryBox,
+    userUuid: Uuid
+  ): Promise<MysteryBoxRoll[]> {
+    const games =
+      await this.gamePlatformAccountGamesRepository.getAccountGamesByUserId(
+        userUuid
+      );
+
+    const uniqueRolls: MysteryBoxRoll[] = [];
+    while (uniqueRolls.length < 3) {
+      const rollOption =
+        await this.externalGamePlatformRepository.getMysteryBoxRollOption(
+          mysteryBox,
+          games,
+          30
+        );
+
+        if(this.isDuplicateRoll(rollOption, uniqueRolls)) continue;
+
+        const validatedRoll =
+          await this.gameProviderRepository.validateAndReturnMysteryBoxRoll(
+            rollOption
+          );
+        if (
+          validatedRoll
+        ) {
+          uniqueRolls.push(validatedRoll);
+          if (uniqueRolls.length === 3) break;
+        }
+    }
+
+    return uniqueRolls;
+  }
+
+  private isDuplicateRoll(
+    newRoll: MysteryBoxRoll,
+    existingRolls: MysteryBoxRoll[]
+  ): boolean {
+    return existingRolls.some((roll) =>
+      roll
+        .getGameProviderGames()
+        ?.some(
+          (game, index) =>
+            newRoll.getGameProviderGames()?.[index]?.getName() ===
+            game.getName()
+        )
+    );
   }
 
   private async formatResult(

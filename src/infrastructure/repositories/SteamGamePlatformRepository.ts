@@ -4,6 +4,13 @@ import { GamePlatformAccount } from "../../domain/entities/GamePlatformAccount";
 import { GamePlatformAccountGame } from "../../domain/entities/GamePlatformAccountGame";
 import { PinoLoggerAdapter } from "../adapters/log/PinoLoggerAdapter";
 import { LogLevel } from "../../domain/value-objects/LogLevel";
+import { MysteryBox } from "../../domain/entities/MysteryBox";
+import { MysteryBoxRoll } from "../../domain/entities/MysteryBoxRoll";
+import { Op } from "sequelize";
+import { Category } from "../../domain/entities/Category";
+import { MysteryBoxType } from "../../domain/entities/MysteryBoxType";
+
+const CategoryModel = require("../../../models").category;
 
 export class SteamGamePlatformRepository
   implements ExternalGamePlatformRepositoryContract
@@ -168,6 +175,199 @@ export class SteamGamePlatformRepository
           },
         });
         return null;
+      });
+  }
+
+  async getMysteryBoxRollOption(
+    mysteryBox: MysteryBox,
+    referenceGames: GamePlatformAccountGame[],
+    euroAmount: number
+  ): Promise<MysteryBoxRoll> {
+    const categories = mysteryBox.getCategories();
+    const platforms = mysteryBox.getPlatforms();
+    const region = mysteryBox.getRegion();
+    const referenceGamesGategories = [
+      ...new Set(
+        referenceGames.flatMap((game) => this.getGameCategories(game))
+      ),
+    ];
+    const allowedGames = await this.requestAllowedGames(
+      mysteryBox.getType(),
+      categories,
+      region ?? "",
+      euroAmount
+    );
+
+    // TODO: TIENES QUE DEVOLVER ALLOWEDGAMES CON SUS REFERENTES CATEGORÍAS
+    // TODO: PENDIENTE BUSCAR DE LOS ENCONTRADOS PRIORIZAR LOS QUE CONTENGAN ALGUNA CATEGORÍA DE LAS YA GUSTADAS
+  }
+    
+
+  private async getGameCategories(
+    game: GamePlatformAccountGame
+  ): Promise<Category[]> {
+    return await axios
+      .get(`${process.env.STEAM_SPY_URL}`, {
+        params: {
+          request: "appdetails",
+          appid: game.getPlatformGameId(),
+        },
+      })
+      .then((response) => {
+        this.logger.log("requested", {
+          context: "getAccountByUserId",
+          attributes: {
+            status: response.status,
+          },
+        });
+        if (response.status === 200) {
+          const tags: String[] = Object.keys(response.data.tags);
+          const bbddCategories = CategoryModel.findAll({
+            where: {
+              name: {
+                [Op.in]: tags,
+              },
+            },
+          });
+
+          return bbddCategories.map(
+            (category: any) =>
+              new Category(
+                category.id,
+                category.slug,
+                category.name,
+                category.external_id,
+                category.visible
+              )
+          );
+        } else {
+          throw new Error(
+            "Unexpected status code " +
+              response.status +
+              " for getAccountByUserId with response " +
+              JSON.stringify(response.data)
+          );
+        }
+      });
+  }
+
+  private async requestAllowedGames(
+    mysteryBoxType: MysteryBoxType | null,
+    categories: Category[] | null,
+    region: string,
+    euroAmount: number
+  ): Promise<any[]> {
+    const query = JSON.stringify({
+      query: {
+        start: "0",
+        count: "10000",
+        filters: {
+          regional_top_n_sellers: "30000",
+          global_top_n_sellers: "50000",
+          released_only: true,
+          price_filters: { exclude_free_items: true },
+          type_filters: {
+            include_apps: "",
+            include_packages: "",
+            include_bundles: "",
+            include_games: true,
+            include_demos: "",
+            include_mods: "",
+            include_dlc: "",
+            include_software: "",
+            include_video: "",
+            include_hardware: "",
+            include_series: "",
+            include_music: "",
+          },
+          tagids_must_match: [
+            {
+              tagids: categories?.map((category) => category.getExternalId()),
+            },
+          ],
+        },
+      },
+      context: {
+        language: "",
+        country_code: region,
+      },
+      data_request: {
+        include_ratings: false,
+        include_basic_info: false,
+      },
+    });
+
+    return await axios
+        .get(`${process.env.STEAM_API_URL}/IStoreQueryService/Query/v1`, {
+          params: {
+            key: process.env.STEAM_API_KEY,
+            query: query,
+            
+          },
+        })
+        .then((response) => {
+          this.logger.log("requested", {
+            context: "requestGames",
+            attributes: {
+              status: response.status,
+            },
+          });
+          if (response.status === 200) {
+            const items = response.data.store_items;
+            return items.filter((item: any) => {
+              const itemName = item.name;
+              // Validate that the item name does not end with a number preceded by a space and contains only normal alphabet characters
+              const isValidName = /^[a-zA-Z\s]+$/.test(itemName) && !/\s\d$/.test(itemName);
+
+              const price = item.best_purchase_option.original_price_in_cents / 100;
+              const availableAmount = euroAmount * (mysteryBoxType?.getMultiplier() ?? 1);
+              const amountToGet2Games = Number(process.env.AMOUNT_TO_GET_2_GAMES);
+
+              const isPriceValid = (price <= availableAmount) && 
+                     ((availableAmount < amountToGet2Games && price >= 0.95 * availableAmount) || 
+                      (availableAmount >= amountToGet2Games && price >= 0.30 * availableAmount));
+
+              return isValidName && isPriceValid && this.checkGameValorations(item.id);
+            });
+          } else {
+            throw new Error(
+              "Unexpected status code " +
+                response.status +
+                " for getAccountByUserId with response " +
+                JSON.stringify(response.data)
+            );
+          }
+        });
+  }
+
+  private async checkGameValorations(
+    gameExternalId: number,
+  ): Promise<boolean> {
+    return await axios
+      .get(`${process.env.STEAM_SPY_URL}`, {
+        params: {
+          request: "appdetails",
+          appid: gameExternalId,
+        },
+      })
+      .then((response) => {
+        this.logger.log("requested", {
+          context: "checkGameValorations",
+          attributes: {
+            status: response.status,
+          },
+        });
+        if (response.status === 200) {
+          const data = response.data;
+          const minOwners = Number(response.data.owners.split(" .. ")[0] ?? 0);
+          // Check if at least the 80% of the reviews are positive and if has more than 50000 downloads
+          return (
+            data.positive > 0.8 * (data.positive + data.negative) &&
+            minOwners > Number(process.env.MIN_GAME_OWNERS)
+          );
+        } else {
+          return false;
+        }
       });
   }
 }
