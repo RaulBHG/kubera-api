@@ -9,7 +9,7 @@ import { GameProviderGame } from "../../domain/entities/GameProviderGame";
 
 const MysteryModel = require("../../../models").mystery_box;
 
-export class MisteryBoxSequelizeRepository implements MysteryBoxRepositoryContract {
+export class MysteryBoxSequelizeRepository implements MysteryBoxRepositoryContract {
   async create(mysteryBox: MysteryBox): Promise<MysteryBox> {
     const newMysteryBox = await MysteryModel.create({
       id: mysteryBox?.getId()?.getValue() ?? Uuid.create().getValue(),

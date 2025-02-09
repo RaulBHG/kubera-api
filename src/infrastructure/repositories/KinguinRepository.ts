@@ -7,5 +7,8 @@ import { Uuid } from "../../domain/value-objects/Uuid";
 const CategoryModel = require("../../../models").category;
 
 export class KinguinRepository implements GameProviderRepositoryContract {
+  validateAndReturnMysteryBoxRoll(mysteryBoxRoll: MysteryBoxRoll): Promise<MysteryBoxRoll | null> {
+    throw new Error("Method not implemented.");
+  }
   
 }

@@ -28,7 +28,7 @@ export class SearchMysteryBoxMatchesUseCase {
     categoryIds: string[] | null,
     platformIds: string[] | null,
     countryCode: string
-  ): Promise<IBoxMatch> {
+  ): Promise<IBoxMatch | null> {
     const userIdUuid = new Uuid(userId);
     const userExists = await this.userRepository.exists(userIdUuid);
     if (!userExists) throw new Error(`User does not exists with id ${userId}`);
@@ -40,6 +40,8 @@ export class SearchMysteryBoxMatchesUseCase {
     const activeMysteryBox = await this.mysteryBoxRepository.getActiveByUserId(
       userIdUuid
     );
+
+    //! Si ya existe un rerollOption lo usamos
     if (!activeMysteryBox) {
       // TODO: AMOUNT NOT HARDCODED
       const type = await this.mysteryBoxTypeRepository.getTypeForAmount(30);
@@ -88,14 +90,16 @@ export class SearchMysteryBoxMatchesUseCase {
         rolls
       );
 
+      return null;
       // If has been rejected bock on canjeo
-      return await this.formatResult(finalMysteryBox, rerollOption);
+      //return await this.formatResult(finalMysteryBox, rerollOption);
     } else {
-      return await this.formatResult(activeMysteryBox, rerollOption);
+      return null;
+      //return await this.formatResult(activeMysteryBox, rerollOption);
     }
   }
 
-  async getThreeUniqueMysteryBoxRolls(
+  private async getThreeUniqueMysteryBoxRolls(
     mysteryBox: MysteryBox,
     userUuid: Uuid
   ): Promise<MysteryBoxRoll[]> {
@@ -145,7 +149,7 @@ export class SearchMysteryBoxMatchesUseCase {
     );
   }
 
-  private async formatResult(
+  /*private async formatResult(
     mysteryBox: MysteryBox,
     rerollOption: number
   ): Promise<IBoxMatch> {
@@ -182,7 +186,7 @@ export class SearchMysteryBoxMatchesUseCase {
     };
 
     return result;
-  }
+  }*/
 }
 
 interface IBoxMatch {

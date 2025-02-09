@@ -6,6 +6,7 @@ export class GameProviderGame {
     private readonly id: Uuid | null,
     private readonly mysteryBoxRollId: Uuid,
     private readonly name: string,
+    private readonly gamePlatformPrice: number,
     private readonly imgUrl: string | null,
     private readonly region: string | null,
     private readonly externalData: object | null,
@@ -22,6 +23,10 @@ export class GameProviderGame {
 
   getName(): string {
     return this.name;
+  }
+
+  getGamePlatformPrice(): number {
+    return this.gamePlatformPrice;
   }
 
   getImgUrl(): string | null {

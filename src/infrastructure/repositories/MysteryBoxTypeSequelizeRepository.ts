@@ -1,11 +1,11 @@
 import { MysteryBoxTypeRepositoryContract } from "../../domain/contracts/MysteryBoxTypeRepositoryContract";
 import { MysteryBoxType } from "../../domain/entities/MysteryBoxType";
-import { Uuid } from './../../domain/value-objects/Uuid';
+import { Uuid } from '../../domain/value-objects/Uuid';
 
 const TypeModel = require("../../../models").mystery_box_type;
 const PiggyModel = require("../../../models").piggy_bank;
 
-export class MisteryBoxTypeSequelizeRepository
+export class MysteryBoxTypeSequelizeRepository
   implements MysteryBoxTypeRepositoryContract
 {
   async getTypeForAmount(euroAmount: number): Promise<MysteryBoxType> {

@@ -9,6 +9,8 @@ import { MysteryBoxRoll } from "../../domain/entities/MysteryBoxRoll";
 import { Op } from "sequelize";
 import { Category } from "../../domain/entities/Category";
 import { MysteryBoxType } from "../../domain/entities/MysteryBoxType";
+import { Uuid } from "../../domain/value-objects/Uuid";
+import { GameProviderGame } from "../../domain/entities/GameProviderGame";
 
 const CategoryModel = require("../../../models").category;
 
@@ -183,33 +185,136 @@ export class SteamGamePlatformRepository
     referenceGames: GamePlatformAccountGame[],
     euroAmount: number
   ): Promise<MysteryBoxRoll> {
+
+    // Get the price of the mystery box
+    euroAmount =
+            euroAmount * (mysteryBox.getType()?.getMultiplier() ?? 1);
+
+
+    const shuffle = (array: any[]) : any[] => {
+      let currentIndex = array.length;
+
+      // While there remain elements to shuffle...
+      while (currentIndex != 0) {
+        // Pick a remaining element...
+        let randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        // And swap it with the current element.
+        [array[currentIndex], array[randomIndex]] = [
+          array[randomIndex],
+          array[currentIndex],
+        ];
+      }
+
+      return array;
+    }
+
     const categories = mysteryBox.getCategories();
-    const platforms = mysteryBox.getPlatforms();
     const region = mysteryBox.getRegion();
-    const referenceGamesGategories = [
+    const referenceGamesCategories = [
       ...new Set(
-        referenceGames.flatMap((game) => this.getGameCategories(game))
+        (
+          await Promise.all(
+            referenceGames.map(
+              async (game) =>
+                await this.getGameCategories(game.getPlatformGameId())
+            )
+          )
+        ).flat()
       ),
     ];
-    const allowedGames = await this.requestAllowedGames(
+    const allowedGames = shuffle(await this.requestAllowedGames(
       mysteryBox.getType(),
       categories,
       region ?? "",
       euroAmount
+    ));
+
+    // Filter the games that have at least one category in common with the reference games
+    const matchedWithReference = shuffle(allowedGames.filter((game) => {
+      const gameCategories = game.categories;
+      return gameCategories.some((category: Category) =>
+        referenceGamesCategories.includes(category)
+      );
+    }));
+
+    // If the amount of games that match with the reference games is less than the 40% of the total amount of games requested
+    // get the 20 games at least without matching with the reference games
+    const minimumGames = 20;
+    const minimumPercentage = 40;
+    const requiredGamesCount = Math.max(
+      minimumGames,
+      Math.ceil(allowedGames.length * (minimumPercentage/100))
     );
 
-    // TODO: TIENES QUE DEVOLVER ALLOWEDGAMES CON SUS REFERENTES CATEGORÍAS
-    // TODO: PENDIENTE BUSCAR DE LOS ENCONTRADOS PRIORIZAR LOS QUE CONTENGAN ALGUNA CATEGORÍA DE LAS YA GUSTADAS
+    const finalGames =
+      matchedWithReference.length >= requiredGamesCount
+        ? matchedWithReference.slice(0, requiredGamesCount)
+        : allowedGames.slice(0, requiredGamesCount);
+
+    const mysteryBoxRollId = Uuid.create();
+        
+    // Get a random game or 2 games from the final games
+    const randomGame = finalGames[Math.floor(Math.random() * finalGames.length)];
+    const gamePrice = randomGame.gameData.price;
+
+    const gameProciderGames = [
+      new GameProviderGame(
+        Uuid.create(),
+        mysteryBoxRollId,
+        randomGame.gameData.name,
+        gamePrice,
+        null,
+        null,
+        null,
+        null
+      ),
+    ];
+    // If the price of the game is less than the min of the euro amount, get a second game
+    if (
+      gamePrice <
+      euroAmount * Number(process.env.MIN_AMOUNT_PERCENTAGE_FOR_1_GAME)
+    ) {
+      const secondRandomGame = finalGames.find(
+        (game) =>
+          game.gameData.id !== randomGame.gameData.id &&
+          game.gameData.price <= euroAmount - gamePrice
+      );
+      if (secondRandomGame) {
+        gameProciderGames.push(
+          new GameProviderGame(
+            Uuid.create(),
+            mysteryBoxRollId,
+            secondRandomGame.gameData.name,
+            secondRandomGame.gameData.price,
+            null,
+            null,
+            null,
+            null
+          )
+        );
+      }
+    }
+
+    return new MysteryBoxRoll(
+      mysteryBoxRollId,
+      mysteryBox.getId(),
+      false,
+      false,
+      false,
+      null,
+      gameProciderGames
+    );    
   }
 
   private async getGameCategories(
-    game: GamePlatformAccountGame
+    platformGameId: number
   ): Promise<Category[]> {
     return await axios
       .get(`${process.env.STEAM_SPY_URL}`, {
         params: {
           request: "appdetails",
-          appid: game.getPlatformGameId(),
+          appid: platformGameId,
         },
       })
       .then((response) => {
@@ -255,7 +360,16 @@ export class SteamGamePlatformRepository
     categories: Category[] | null,
     region: string,
     euroAmount: number
-  ): Promise<any[]> {
+  ): Promise<
+    {
+      gameData: {
+        id: number;
+        name: string;
+        price: number;
+      };
+      categories: Category[];
+    }[]
+  > {
     // The maximum amount of games to request is 10000
     const maxGamesToRequest = Number(process.env.MAX_GAMES_TO_REQUEST ?? 10000);
     // The start index to request the games
@@ -264,7 +378,6 @@ export class SteamGamePlatformRepository
 
     // Request games until the items array has the maxGamesToRequest length
     while (items.length < maxGamesToRequest) {
-
       const query = JSON.stringify({
         query: {
           start: start.toString(),
@@ -323,10 +436,8 @@ export class SteamGamePlatformRepository
       });
 
       if (response.status === 200) {
-
         // Filter the steam response to get only the games that match the criteria
         const newItems = response.data.store_items.filter((item: any) => {
-
           // A valid name is only composed by letters and spaces and doesn't end with a number
           const itemName = item.name;
           const isValidName =
@@ -334,33 +445,46 @@ export class SteamGamePlatformRepository
 
           // Check if the price is valid
           const price = item.best_purchase_option.original_price_in_cents / 100;
-          const availableAmount =
-            euroAmount * (mysteryBoxType?.getMultiplier() ?? 1);
+          
           const amountToGet2Games = Number(process.env.AMOUNT_TO_GET_2_GAMES);
+
           const isPriceValid =
-            price <= availableAmount &&
-            ((availableAmount < amountToGet2Games &&
-              price >= 0.95 * availableAmount) ||
-              (availableAmount >= amountToGet2Games &&
-                price >= 0.3 * availableAmount));
+            price <= euroAmount &&
+            ((euroAmount < amountToGet2Games &&
+              price >=
+                (Number(process.env.MIN_AMOUNT_PERCENTAGE_FOR_1_GAME) / 100) *
+                  euroAmount) ||
+              (euroAmount >= amountToGet2Games &&
+                price >=
+                  (Number(process.env.MIN_AMOUNT_PERCENTAGE_FOR_1_GAME) / 100) *
+                    euroAmount));
 
           // Check if the game has enough valorations
           return (
             isValidName && isPriceValid && this.checkGameValorations(item.id)
           );
-
         });
 
         // Add the new items to the items array
-        items = items.concat(newItems);
+        items = items.concat(
+          await Promise.all(
+            newItems.map(async (item: any) => ({
+              gameData: {
+                id: item.id,
+                name: item.name,
+                price: item.best_purchase_option.original_price_in_cents / 100,
+              },
+              categories: await this.getGameCategories(item.id),
+            }))
+          )
+        );
 
         // If the total of items requested is greater than the total of items available, break the loop
         const totalMatchingRecords =
           response.data.metadata.total_matching_records;
         if (start + newItems.length >= totalMatchingRecords) break;
-        
-        start += newItems.length;
 
+        start += newItems.length;
       } else {
         throw new Error(
           "Unexpected status code " +
@@ -373,7 +497,6 @@ export class SteamGamePlatformRepository
 
     return items;
   }
-
 
   private async checkGameValorations(gameExternalId: number): Promise<boolean> {
     return await axios
