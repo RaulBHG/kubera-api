@@ -1,4 +1,5 @@
 import { Uuid } from "../value-objects/Uuid";
+import { Category } from "./Category";
 import { Platform } from "./Platform";
 
 export class GameProviderGame {
@@ -10,7 +11,8 @@ export class GameProviderGame {
     private readonly region: string | null,
     private readonly platform: Platform | null,
     private readonly externalData: object | null,
-    private readonly gamePlatformPrice: number | null = null
+    private readonly gamePlatformPrice: number | null = null,
+    private readonly categories: Category[] = []
   ) {}
 
   getId(): Uuid | null {
@@ -43,5 +45,9 @@ export class GameProviderGame {
 
   getGamePlatformPrice(): number | null {
     return this.gamePlatformPrice;
+  }
+
+  getCategories(): Category[] {
+    return this.categories;
   }
 }

@@ -108,10 +108,15 @@ export class SearchMysteryBoxMatchesUseCase {
         userUuid
       );
 
-    const uniqueRolls: MysteryBoxRoll[] = [];
+    const uniqueRolls: MysteryBoxRoll[] =
+      await this.externalGamePlatformRepository.getMysteryBoxRollOptions(
+        mysteryBox,
+        games,
+        30
+      );
     while (uniqueRolls.length < Number(process.env.MYSTERY_BOX_MAX_ROLLS)) {
       const rollOption =
-        await this.externalGamePlatformRepository.getMysteryBoxRollOption(
+        await this.externalGamePlatformRepository.getMysteryBoxRollOptions(
           mysteryBox,
           games,
           30

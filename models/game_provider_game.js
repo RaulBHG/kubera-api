@@ -10,7 +10,15 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      game_provider_game.belongsToMany(models.category, {
+        through: {
+          model: "game_provider_games_categories",
+          timestamps: false,
+        }, // specify the join table
+        foreignKey: "game_provider_game_id",
+        otherKey: "category_id",
+        as: "categories",
+      });
     }
   }
   game_provider_game.init(

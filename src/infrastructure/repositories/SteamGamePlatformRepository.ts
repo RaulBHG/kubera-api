@@ -11,13 +11,17 @@ import { Category } from "../../domain/entities/Category";
 import { MysteryBoxType } from "../../domain/entities/MysteryBoxType";
 import { Uuid } from "../../domain/value-objects/Uuid";
 import { GameProviderGame } from "../../domain/entities/GameProviderGame";
+import { SteamAccountReferenceGamesSequelizeRepository } from "./SteamAccountReferenceGamesSequelizeRepository";
+import { GameProviderRepositoryContract } from "../../domain/contracts/GameProviderRepositoryContract";
 
 const CategoryModel = require("../../../models").category;
 
 export class SteamGamePlatformRepository
   implements ExternalGamePlatformRepositoryContract
 {
-  constructor(private logger: PinoLoggerAdapter) {}
+  constructor(
+    private logger: PinoLoggerAdapter,
+  ) {}
 
   async getAccountByUserId(
     userId: string
@@ -180,11 +184,11 @@ export class SteamGamePlatformRepository
       });
   }
 
-  async getMysteryBoxRollOption(
+  async getAvailableGameProviderGame(
     mysteryBox: MysteryBox,
     referenceGames: GamePlatformAccountGame[],
     euroAmount: number
-  ): Promise<MysteryBoxRoll> {
+  ): Promise<GameProviderGame[]> {
     // Get the price of the mystery box
     euroAmount = euroAmount * (mysteryBox.getType()?.getMultiplier() ?? 1);
 
@@ -208,6 +212,8 @@ export class SteamGamePlatformRepository
 
     const categories = mysteryBox.getCategories();
     const region = mysteryBox.getRegion();
+
+    // ! BUSCAR LISTADO CATEGORÍAS STEAM, SI YA EXISTE EN MEMORIA NO HACER LA PETICIÓN 
     const referenceGamesCategories = [
       ...new Set(
         (
@@ -223,6 +229,11 @@ export class SteamGamePlatformRepository
         ).flat()
       ),
     ].map((categoryStr) => JSON.parse(categoryStr));
+
+
+    // ! QUITAR STEAMSPY. MODIFICAR MODELOS PARA QUE JUEGOS DE REFERENCIA ALMACENEN YA EL TAG
+    // ! CRUZAR JUEGO QUE GUSTAN CON SUS CATEGORÍAS EN STEAM /3 SOLICITUDES POR SEGUNDO
+
     // ! Los que ya tiene no los tiene que guardar como allowed, los juegos que ya tiene los ignora
     // ! Quiero que la respuesta de este método una vez se haga no la vuelva a hacer durante la misma ejecución
     // ! Tiene que validar por juegos de hace menos de tantos años url para ver -> https://store.steampowered.com/api/appdetails?appids=2672570
@@ -244,6 +255,13 @@ export class SteamGamePlatformRepository
         );
       })
     );
+  }
+
+  async getMysteryBoxRollOption(
+    mysteryBox: MysteryBox,
+    gameProviderGames: GameProviderGame[],
+    euroAmount: number
+  ): Promise<MysteryBoxRoll> {
 
     // If the amount of games that match with the reference games is less than the 40% of the total amount of games requested
     // get the 20 games at least without matching with the reference games
@@ -315,52 +333,8 @@ export class SteamGamePlatformRepository
     );
   }
 
-  //! Tiene que almacenar en bbdd los juegos y sus categorías para no hacer tanta petición
-  private async getGameCategories(platformGameId: number): Promise<Category[]> {
-    return await axios
-      .get(`${process.env.STEAM_SPY_URL}`, {
-        params: {
-          request: "appdetails",
-          appid: platformGameId,
-        },
-      })
-      .then(async (response) => {
-        this.logger.log("requested", {
-          context: "getAccountByUserId",
-          attributes: {
-            status: response.status,
-          },
-        });
-        if (response.status === 200) {
-          const tags: String[] = Object.keys(response.data.tags);
-          const bbddCategories = await CategoryModel.findAll({
-            where: {
-              name: {
-                [Op.in]: tags,
-              },
-            },
-          });
 
-          return bbddCategories.map(
-            (category: any) =>
-              new Category(
-                category.id,
-                category.slug,
-                category.name,
-                category.external_id,
-                category.visible
-              )
-          );
-        } else {
-          throw new Error(
-            "Unexpected status code " +
-              response.status +
-              " for getAccountByUserId with response " +
-              JSON.stringify(response.data)
-          );
-        }
-      });
-  }
+  // ---------------------------- PRIVATE METHODS ----------------------------
 
   private async requestAllowedGames(
     mysteryBoxType: MysteryBoxType | null,
@@ -417,7 +391,7 @@ export class SteamGamePlatformRepository
         },
         context: {
           language: "",
-          country_code: region,
+          country_code: region ?? "ES",
         },
         data_request: {
           include_ratings: false,
@@ -466,7 +440,17 @@ export class SteamGamePlatformRepository
                   (Number(process.env.MIN_AMOUNT_PERCENTAGE_FOR_1_GAME) / 100) *
                     euroAmount));
 
-          // Check if the game has enough valorations
+          //!OIJSDOIAS
+              const data = response.data;
+              const minOwners = Number(
+                response.data.owners.split(" .. ")[0] ?? 0
+              );
+              // Check if at least the 80% of the reviews are positive and if has more than 50000 downloads
+              return (
+                data.positive > 0.8 * (data.positive + data.negative) &&
+                minOwners > Number(process.env.MIN_GAME_OWNERS)
+                //!OIJSDOIAS
+                
           return (
             isValidName && isPriceValid && this.checkGameValorations(item.id)
           );
@@ -477,6 +461,18 @@ export class SteamGamePlatformRepository
           await Promise.all(
             newItems.map(async (item: any, index: number) => {
               await this.delay(1000 * index);
+              
+              //!OIJSDOIAS
+              const data = response.data;
+              const minOwners = Number(
+                response.data.owners.split(" .. ")[0] ?? 0
+              );
+              // Check if at least the 80% of the reviews are positive and if has more than 50000 downloads
+              return (
+                data.positive > 0.8 * (data.positive + data.negative) &&
+                minOwners > Number(process.env.MIN_GAME_OWNERS)
+                //!OIJSDOIAS
+                
 
               return {
               gameData: {
@@ -506,41 +502,6 @@ export class SteamGamePlatformRepository
     }
 
     return items;
-  }
-
-  private async checkGameValorations(gameExternalId: number): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      setTimeout(async () => {
-        return await axios
-          .get(`${process.env.STEAM_SPY_URL}`, {
-            params: {
-              request: "appdetails",
-              appid: gameExternalId,
-            },
-          })
-          .then((response) => {
-            this.logger.log("requested", {
-              context: "checkGameValorations",
-              attributes: {
-                status: response.status,
-              },
-            });
-            if (response.status === 200) {
-              const data = response.data;
-              const minOwners = Number(
-                response.data.owners.split(" .. ")[0] ?? 0
-              );
-              // Check if at least the 80% of the reviews are positive and if has more than 50000 downloads
-              return (
-                data.positive > 0.8 * (data.positive + data.negative) &&
-                minOwners > Number(process.env.MIN_GAME_OWNERS)
-              );
-            } else {
-              return false;
-            }
-          });
-      }, 1000); // 1 second
-    });
   }
 
   private delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
