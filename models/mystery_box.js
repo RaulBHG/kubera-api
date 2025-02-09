@@ -22,13 +22,13 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "mystery_box_id",
         as: "rolls",
       });
-      mystery_box.hasMany(models.category, {
+      mystery_box.belongsToMany(models.category, {
         through: "mystery_boxes_categories", // specify the join table
         foreignKey: "mystery_box_id",
         otherKey: "category_id",
         as: "categories",
       });
-      mystery_box.hasMany(models.platform, {
+      mystery_box.belongsToMany(models.platform, {
         through: "mystery_boxes_platforms", // specify the join table
         foreignKey: "mystery_box_id",
         otherKey: "platform_id",
