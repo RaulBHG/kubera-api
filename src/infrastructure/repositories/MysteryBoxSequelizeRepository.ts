@@ -131,14 +131,14 @@ export class MysteryBoxSequelizeRepository implements MysteryBoxRepositoryContra
                 gameProviderGame.name,
                 gameProviderGame.img_url,
                 gameProviderGame.region,
-                gameProviderGame.external_data,
                 new Platform(
                   gameProviderGame.platform.id,
                   gameProviderGame.platform.slug,
                   gameProviderGame.platform.name,
                   gameProviderGame.platform.external_id,
                   gameProviderGame.platform.visible
-                )
+                ),
+                gameProviderGame.external_data,
               )
           )
         )

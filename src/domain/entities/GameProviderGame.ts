@@ -6,11 +6,11 @@ export class GameProviderGame {
     private readonly id: Uuid | null,
     private readonly mysteryBoxRollId: Uuid,
     private readonly name: string,
-    private readonly gamePlatformPrice: number,
     private readonly imgUrl: string | null,
     private readonly region: string | null,
+    private readonly platform: Platform | null,
     private readonly externalData: object | null,
-    private readonly platform: Platform | null
+    private readonly gamePlatformPrice: number | null = null
   ) {}
 
   getId(): Uuid | null {
@@ -25,10 +25,6 @@ export class GameProviderGame {
     return this.name;
   }
 
-  getGamePlatformPrice(): number {
-    return this.gamePlatformPrice;
-  }
-
   getImgUrl(): string | null {
     return this.imgUrl;
   }
@@ -36,12 +32,16 @@ export class GameProviderGame {
   getRegion(): string | null {
     return this.region;
   }
-
+  
+  getPlatform(): Platform | null {
+    return this.platform;
+  }
+  
   getExternalData(): object | null {
     return this.externalData;
   }
 
-  getPlatform(): Platform | null {
-    return this.platform;
+  getGamePlatformPrice(): number | null {
+    return this.gamePlatformPrice;
   }
 }

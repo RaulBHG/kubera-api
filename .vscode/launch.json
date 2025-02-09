@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug TS Node",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/app.ts",
+      "preLaunchTask": "tsc: build - tsconfig.json",
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "sourceMaps": true,
+      "smartStep": true,
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["ts-node"],
+      "args": ["${workspaceFolder}/app.ts"]
+    }
+  ]
+}

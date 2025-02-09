@@ -27,7 +27,7 @@ export class SearchMysteryBoxMatchesUseCase {
     rerollOption: number,
     categoryIds: string[] | null,
     platformIds: string[] | null,
-    countryCode: string
+    countryCode: string | null
   ): Promise<IBoxMatch | null> {
     const userIdUuid = new Uuid(userId);
     const userExists = await this.userRepository.exists(userIdUuid);

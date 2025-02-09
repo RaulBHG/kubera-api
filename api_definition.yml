@@ -242,7 +242,7 @@ paths:
           $ref: '#/components/responses/NotValidUrl'
         '400':
           $ref: '#/components/responses/InternalServerError'
-  '/api/mystery-box/search-matchs/rerol-option/{option_id}':
+  '/api/mystery-box/search-matchs/reroll-option/{option_id}':
     post:
       description: Esto hay que lanzarlo y tiene que quedar escuchando el front con un websocket. Al devolver opción tiene que marcarla en bbdd como la correcta y marcar la búsqueda como utilizada y mandar un mail con la key y mostrarla con el websocket
       parameters:
