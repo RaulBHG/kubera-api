@@ -5,11 +5,11 @@ import { Uuid } from '../domain/value-objects/Uuid';
 import { UserRepositoryContract } from './../domain/contracts/UserRepositoryContract';
 import { MysteryBoxTypeRepositoryContract } from '../domain/contracts/MysteryBoxTypeRepositoryContract';
 import { GameProviderRepositoryContract } from '../domain/contracts/GameProviderRepositoryContract';
-import { CategoryRepositoryContract } from '../domain/contracts/CategoryRepositoryContract';
 import { PlatformRepositoryContract } from '../domain/contracts/PlatformRepositoryContract';
 import { GamePlatformAccountGamesRepositoryContract } from '../domain/contracts/game-platform/GamePlatformAccountGamesRepositoryContract';
 import { ExternalGamePlatformRepositoryContract } from '../domain/contracts/game-platform/ExternalGamePlatformRepositoryContract';
 import { MysteryBoxRoll } from '../domain/entities/MysteryBoxRoll';
+import { CategoryRepositoryContract } from '../domain/contracts/repositories/CategoryRepositoryContract';
 export class SearchMysteryBoxMatchesUseCase {
   constructor(
     private readonly userRepository: UserRepositoryContract,
@@ -46,7 +46,7 @@ export class SearchMysteryBoxMatchesUseCase {
       // TODO: AMOUNT NOT HARDCODED
       const type = await this.mysteryBoxTypeRepository.getTypeForAmount(30);
       const expiration = new Date();
-      expiration.setHours(expiration.getHours() + 2);
+      expiration.setSeconds(expiration.getSeconds() + Number(process.env.MYSTERY_BOX_EXPIRATION_TIME));
       const getNonNullResults = async (promises: Promise<any>[]) => {
         const results = await Promise.all(promises);
         return results.filter((result) => result !== null);
@@ -109,7 +109,7 @@ export class SearchMysteryBoxMatchesUseCase {
       );
 
     const uniqueRolls: MysteryBoxRoll[] = [];
-    while (uniqueRolls.length < 3) {
+    while (uniqueRolls.length < Number(process.env.MYSTERY_BOX_MAX_ROLLS)) {
       const rollOption =
         await this.externalGamePlatformRepository.getMysteryBoxRollOption(
           mysteryBox,
@@ -117,18 +117,16 @@ export class SearchMysteryBoxMatchesUseCase {
           30
         );
 
-        if(this.isDuplicateRoll(rollOption, uniqueRolls)) continue;
+      if (this.isDuplicateRoll(rollOption, uniqueRolls)) continue;
 
-        const validatedRoll =
-          await this.gameProviderRepository.validateAndReturnMysteryBoxRoll(
-            rollOption
-          );
-        if (
-          validatedRoll
-        ) {
-          uniqueRolls.push(validatedRoll);
-          if (uniqueRolls.length === 3) break;
-        }
+      const validatedRoll =
+        await this.gameProviderRepository.validateAndReturnMysteryBoxRoll(
+          rollOption
+        );
+      if (validatedRoll) {
+        uniqueRolls.push(validatedRoll);
+        if (uniqueRolls.length === 3) break;
+      }
     }
 
     return uniqueRolls;

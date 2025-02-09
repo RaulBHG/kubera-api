@@ -36,6 +36,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('piggy_banks');
+    await queryInterface.dropTable("piggy_bank");
   }
 };

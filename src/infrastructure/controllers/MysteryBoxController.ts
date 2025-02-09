@@ -1,16 +1,17 @@
-import { Category } from "../../domain/entities/Category";
 import { Response } from "express";
 import { Controller } from "./Controller";
 import { SearchMysteryBoxMatchesUseCase } from "../../application/SearchMysteryBoxMatchesUseCase";
 
 export class MysteryBoxController extends Controller {
-  constructor(private readonly useCase: SearchMysteryBoxMatchesUseCase) {
+  constructor(
+    private readonly searchMysteryBoxMatchesUseCase: SearchMysteryBoxMatchesUseCase
+  ) {
     super();
   }
   async getRollOption(res: Response): Promise<void> {
     try {
       //! Get From request
-      const matches = await this.useCase.searchMatches(
+      const matches = await this.searchMysteryBoxMatchesUseCase.searchMatches(
         "0e4a517e-aac2-43d2-9b5a-513d5e7dd09e",
         1,
         [
@@ -27,7 +28,7 @@ export class MysteryBoxController extends Controller {
     } catch (error) {
       res.status(500).json({
         success: false,
-        message: "An error occurred while fetching categories",
+        message: "An error occurred while fetching roll",
       });
     }
   }

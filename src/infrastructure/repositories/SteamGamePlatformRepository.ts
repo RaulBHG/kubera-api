@@ -185,13 +185,10 @@ export class SteamGamePlatformRepository
     referenceGames: GamePlatformAccountGame[],
     euroAmount: number
   ): Promise<MysteryBoxRoll> {
-
     // Get the price of the mystery box
-    euroAmount =
-            euroAmount * (mysteryBox.getType()?.getMultiplier() ?? 1);
+    euroAmount = euroAmount * (mysteryBox.getType()?.getMultiplier() ?? 1);
 
-
-    const shuffle = (array: any[]) : any[] => {
+    const shuffle = (array: any[]): any[] => {
       let currentIndex = array.length;
 
       // While there remain elements to shuffle...
@@ -207,7 +204,7 @@ export class SteamGamePlatformRepository
       }
 
       return array;
-    }
+    };
 
     const categories = mysteryBox.getCategories();
     const region = mysteryBox.getRegion();
@@ -215,28 +212,37 @@ export class SteamGamePlatformRepository
       ...new Set(
         (
           await Promise.all(
-            referenceGames.map(
-              async (game) =>
-                await this.getGameCategories(game.getPlatformGameId())
-            )
+            referenceGames.map(async (game, index: number) => {
+              await this.delay(1000 * index);
+              const categories = await this.getGameCategories(
+                game.getPlatformGameId()
+              );
+              return categories.map((category) => JSON.stringify(category));
+            })
           )
         ).flat()
       ),
-    ];
-    const allowedGames = shuffle(await this.requestAllowedGames(
-      mysteryBox.getType(),
-      categories,
-      region ?? "",
-      euroAmount
-    ));
+    ].map((categoryStr) => JSON.parse(categoryStr));
+    // ! Los que ya tiene no los tiene que guardar como allowed, los juegos que ya tiene los ignora
+    // ! Quiero que la respuesta de este método una vez se haga no la vuelva a hacer durante la misma ejecución
+    const allowedGames = shuffle(
+      await this.requestAllowedGames(
+        mysteryBox.getType(),
+        categories,
+        region ?? "",
+        euroAmount
+      )
+    );
 
     // Filter the games that have at least one category in common with the reference games
-    const matchedWithReference = shuffle(allowedGames.filter((game) => {
-      const gameCategories = game.categories;
-      return gameCategories.some((category: Category) =>
-        referenceGamesCategories.includes(category)
-      );
-    }));
+    const matchedWithReference = shuffle(
+      allowedGames.filter((game) => {
+        const gameCategories = game.categories;
+        return gameCategories.some((category: Category) =>
+          referenceGamesCategories.includes(category)
+        );
+      })
+    );
 
     // If the amount of games that match with the reference games is less than the 40% of the total amount of games requested
     // get the 20 games at least without matching with the reference games
@@ -244,7 +250,7 @@ export class SteamGamePlatformRepository
     const minimumPercentage = 40;
     const requiredGamesCount = Math.max(
       minimumGames,
-      Math.ceil(allowedGames.length * (minimumPercentage/100))
+      Math.ceil(allowedGames.length * (minimumPercentage / 100))
     );
 
     const finalGames =
@@ -253,9 +259,10 @@ export class SteamGamePlatformRepository
         : allowedGames.slice(0, requiredGamesCount);
 
     const mysteryBoxRollId = Uuid.create();
-        
+
     // Get a random game or 2 games from the final games
-    const randomGame = finalGames[Math.floor(Math.random() * finalGames.length)];
+    const randomGame =
+      finalGames[Math.floor(Math.random() * finalGames.length)];
     const gamePrice = randomGame.gameData.price;
 
     const gameProciderGames = [
@@ -304,12 +311,11 @@ export class SteamGamePlatformRepository
       false,
       null,
       gameProciderGames
-    );    
+    );
   }
 
-  private async getGameCategories(
-    platformGameId: number
-  ): Promise<Category[]> {
+  //! Tiene que almacenar en bbdd los juegos y sus categorías para no hacer tanta petición
+  private async getGameCategories(platformGameId: number): Promise<Category[]> {
     return await axios
       .get(`${process.env.STEAM_SPY_URL}`, {
         params: {
@@ -317,7 +323,7 @@ export class SteamGamePlatformRepository
           appid: platformGameId,
         },
       })
-      .then((response) => {
+      .then(async (response) => {
         this.logger.log("requested", {
           context: "getAccountByUserId",
           attributes: {
@@ -326,7 +332,7 @@ export class SteamGamePlatformRepository
         });
         if (response.status === 200) {
           const tags: String[] = Object.keys(response.data.tags);
-          const bbddCategories = CategoryModel.findAll({
+          const bbddCategories = await CategoryModel.findAll({
             where: {
               name: {
                 [Op.in]: tags,
@@ -445,7 +451,7 @@ export class SteamGamePlatformRepository
 
           // Check if the price is valid
           const price = item.best_purchase_option.original_price_in_cents / 100;
-          
+
           const amountToGet2Games = Number(process.env.AMOUNT_TO_GET_2_GAMES);
 
           const isPriceValid =
@@ -468,14 +474,17 @@ export class SteamGamePlatformRepository
         // Add the new items to the items array
         items = items.concat(
           await Promise.all(
-            newItems.map(async (item: any) => ({
+            newItems.map(async (item: any, index: number) => {
+              await this.delay(1000 * index);
+
+              return {
               gameData: {
                 id: item.id,
                 name: item.name,
                 price: item.best_purchase_option.original_price_in_cents / 100,
               },
               categories: await this.getGameCategories(item.id),
-            }))
+            }})
           )
         );
 
@@ -499,31 +508,39 @@ export class SteamGamePlatformRepository
   }
 
   private async checkGameValorations(gameExternalId: number): Promise<boolean> {
-    return await axios
-      .get(`${process.env.STEAM_SPY_URL}`, {
-        params: {
-          request: "appdetails",
-          appid: gameExternalId,
-        },
-      })
-      .then((response) => {
-        this.logger.log("requested", {
-          context: "checkGameValorations",
-          attributes: {
-            status: response.status,
-          },
-        });
-        if (response.status === 200) {
-          const data = response.data;
-          const minOwners = Number(response.data.owners.split(" .. ")[0] ?? 0);
-          // Check if at least the 80% of the reviews are positive and if has more than 50000 downloads
-          return (
-            data.positive > 0.8 * (data.positive + data.negative) &&
-            minOwners > Number(process.env.MIN_GAME_OWNERS)
-          );
-        } else {
-          return false;
-        }
-      });
+    return new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        return await axios
+          .get(`${process.env.STEAM_SPY_URL}`, {
+            params: {
+              request: "appdetails",
+              appid: gameExternalId,
+            },
+          })
+          .then((response) => {
+            this.logger.log("requested", {
+              context: "checkGameValorations",
+              attributes: {
+                status: response.status,
+              },
+            });
+            if (response.status === 200) {
+              const data = response.data;
+              const minOwners = Number(
+                response.data.owners.split(" .. ")[0] ?? 0
+              );
+              // Check if at least the 80% of the reviews are positive and if has more than 50000 downloads
+              return (
+                data.positive > 0.8 * (data.positive + data.negative) &&
+                minOwners > Number(process.env.MIN_GAME_OWNERS)
+              );
+            } else {
+              return false;
+            }
+          });
+      }, 1000); // 1 second
+    });
   }
+
+  private delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 }

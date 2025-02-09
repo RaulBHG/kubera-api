@@ -23,13 +23,19 @@ module.exports = (sequelize, DataTypes) => {
         as: "rolls",
       });
       mystery_box.belongsToMany(models.category, {
-        through: "mystery_boxes_categories", // specify the join table
+        through: {
+          model: "mystery_boxes_categories",
+          timestamps: false,
+        }, // specify the join table
         foreignKey: "mystery_box_id",
         otherKey: "category_id",
         as: "categories",
       });
       mystery_box.belongsToMany(models.platform, {
-        through: "mystery_boxes_platforms", // specify the join table
+        through: {
+          model: "mystery_boxes_platforms",
+          timestamps: false,
+        }, // specify the join table
         foreignKey: "mystery_box_id",
         otherKey: "platform_id",
         as: "platforms",

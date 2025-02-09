@@ -9,10 +9,10 @@ export class MysteryBoxTypeSequelizeRepository
   implements MysteryBoxTypeRepositoryContract
 {
   async getTypeForAmount(euroAmount: number): Promise<MysteryBoxType> {
-    const types = TypeModel.findAll({
+    const types = await TypeModel.findAll({
       order: [["percentage", "ASC"]],
     });
-    const standarType = TypeModel.findOne((type: any) => type.multiplier === 0);
+    const standarType = types.find((type: any) => type.multiplier === 0);
     if (!standarType) {
       throw new Error("No standard type found");
     }
@@ -34,8 +34,8 @@ export class MysteryBoxTypeSequelizeRepository
     );
   }
 
-  private canPiggyBankAssumeAmount(amount: number): boolean {
-    const piggyFound = PiggyModel.findOne();
+  private async canPiggyBankAssumeAmount(amount: number): Promise<boolean> {
+    const piggyFound = await PiggyModel.findOne();
     if (!piggyFound) return false;
 
     return piggyFound.amount >= amount * 2;
