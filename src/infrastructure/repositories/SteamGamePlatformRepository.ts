@@ -184,7 +184,7 @@ export class SteamGamePlatformRepository
       });
   }
 
-  async getAvailableGameProviderGame(
+  async getAvailableGameProviderGames(
     mysteryBox: MysteryBox,
     referenceGames: GamePlatformAccountGame[],
     euroAmount: number

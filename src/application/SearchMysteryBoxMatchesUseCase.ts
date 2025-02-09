@@ -103,22 +103,24 @@ export class SearchMysteryBoxMatchesUseCase {
     mysteryBox: MysteryBox,
     userUuid: Uuid
   ): Promise<MysteryBoxRoll[]> {
-    const games =
+    const accountGames =
       await this.gamePlatformAccountGamesRepository.getAccountGamesByUserId(
         userUuid
       );
 
-    const uniqueRolls: MysteryBoxRoll[] =
-      await this.externalGamePlatformRepository.getMysteryBoxRollOptions(
+    const availableGames =
+      await this.externalGamePlatformRepository.getAvailableGameProviderGames(
         mysteryBox,
-        games,
+        accountGames,
         30
       );
+
+    const uniqueRolls: MysteryBoxRoll[] = [];
     while (uniqueRolls.length < Number(process.env.MYSTERY_BOX_MAX_ROLLS)) {
       const rollOption =
-        await this.externalGamePlatformRepository.getMysteryBoxRollOptions(
+        await this.externalGamePlatformRepository.getMysteryBoxRollOption(
           mysteryBox,
-          games,
+          availableGames,
           30
         );
 

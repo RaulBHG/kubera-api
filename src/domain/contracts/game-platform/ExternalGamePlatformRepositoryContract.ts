@@ -10,10 +10,10 @@ export interface ExternalGamePlatformRepositoryContract {
   getAccountByUserName(userName: string): Promise<GamePlatformAccount | null>;
   getAccountReferenceGamesByAccount(
     account: GamePlatformAccount,
-    limit:number
+    limit: number
   ): Promise<GamePlatformAccountGame[] | null>;
 
-  getAvailableGameProviderGame(
+  getAvailableGameProviderGames(
     mysteryBox: MysteryBox,
     referenceGames: GamePlatformAccountGame[],
     euroAmount: number
@@ -21,7 +21,7 @@ export interface ExternalGamePlatformRepositoryContract {
 
   getMysteryBoxRollOption(
     mysteryBox: MysteryBox,
-    referenceGames: GamePlatformAccountGame[],
+    gameProviderGame: GameProviderGame[],
     euroAmount: number
   ): Promise<MysteryBoxRoll>;
 }
