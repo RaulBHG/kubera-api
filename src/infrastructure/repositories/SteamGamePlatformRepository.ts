@@ -225,6 +225,7 @@ export class SteamGamePlatformRepository
     ].map((categoryStr) => JSON.parse(categoryStr));
     // ! Los que ya tiene no los tiene que guardar como allowed, los juegos que ya tiene los ignora
     // ! Quiero que la respuesta de este método una vez se haga no la vuelva a hacer durante la misma ejecución
+    // ! Tiene que validar por juegos de hace menos de tantos años url para ver -> https://store.steampowered.com/api/appdetails?appids=2672570
     const allowedGames = shuffle(
       await this.requestAllowedGames(
         mysteryBox.getType(),
