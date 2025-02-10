@@ -1,9 +1,15 @@
-import { Router, Request, Response } from "express";
+import express, { Express, Router, Request, Response } from "express";
+import { MockedHandleTxnWebhookController } from "../../../controllers/webhook/MockedTxnWebhookController";
 
-const router = Router();
+const mockedWebhookRoutes = Router();
+const app: Express = express();
 
-router.get("/hola", (req: Request, res: Response) => {
-  res.send("Express + TypeScript Server");
+app.use(express.json());
+
+mockedWebhookRoutes.post("/txn-webhook", (req: Request, res: Response) => {
+  new MockedHandleTxnWebhookController().handleWebhook(req, res);
 });
 
-module.exports = router;
+app.use("/mock", mockedWebhookRoutes);
+
+module.exports = app;

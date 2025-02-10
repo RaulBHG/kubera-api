@@ -1,16 +1,13 @@
-import express, { Express } from "express";
 import dotenv from "dotenv";
-const config = require("./config/config.js");
+import { serverInstance } from "./src/infrastructure/server";
 
 dotenv.config();
 
-const app: Express = express();
-const port = process.env.APP_PORT || 3000;
-const env = process.env.NODE_ENV || "development";
-const dbConfig = config[env];
+// # Add Express app routes
+serverInstance
+  .getExpressApp()
+  .use(require("./src/infrastructure/web/routes/api"))
+  .use(require("./src/infrastructure/web/routes/webhook"));
 
-app.use(require("./src/infrastructure/web/routes/api"));
-
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
-});
+// # Start Express app + WS Server
+serverInstance.startServer(parseInt(process.env.APP_PORT || "3000"));
