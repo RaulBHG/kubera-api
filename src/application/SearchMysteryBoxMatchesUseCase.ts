@@ -110,6 +110,7 @@ export class SearchMysteryBoxMatchesUseCase {
 
     const availableGames =
       await this.externalGamePlatformRepository.getAvailableGameProviderGames(
+        userUuid,
         mysteryBox,
         accountGames,
         30

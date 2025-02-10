@@ -18,7 +18,7 @@ export class StoreExternalGamePlatformAccountUseCase {
   ) {}
 
   async storeAccountData(userIdName: string, userIp: string): Promise<boolean> {
-    let account = await this.externalGamePlatformRepository.getAccountByUserId(
+    let account = await this.externalGamePlatformRepository.getAccountBySteamUserId(
       userIdName
     );
     if (!account) {

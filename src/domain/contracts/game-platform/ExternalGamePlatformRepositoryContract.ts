@@ -6,7 +6,7 @@ import { MysteryBoxRoll } from "../../entities/MysteryBoxRoll";
 import { Uuid } from "../../value-objects/Uuid";
 
 export interface ExternalGamePlatformRepositoryContract {
-  getAccountByUserId(userId: string): Promise<GamePlatformAccount | null>;
+  getAccountBySteamUserId(userId: string): Promise<GamePlatformAccount | null>;
   getAccountByUserName(userName: string): Promise<GamePlatformAccount | null>;
   getAccountReferenceGamesByAccount(
     account: GamePlatformAccount,
@@ -14,10 +14,14 @@ export interface ExternalGamePlatformRepositoryContract {
   ): Promise<GamePlatformAccountGame[] | null>;
 
   getAvailableGameProviderGames(
+    userId: Uuid,
     mysteryBox: MysteryBox,
     referenceGames: GamePlatformAccountGame[],
     euroAmount: number
-  ): Promise<GameProviderGame[]>;
+  ): Promise<{
+    allowedGames: GameProviderGame[];
+    matchedWithReferenceGames: GameProviderGame[];
+  }>;
 
   getMysteryBoxRollOption(
     mysteryBox: MysteryBox,

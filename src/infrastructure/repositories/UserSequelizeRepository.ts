@@ -22,4 +22,5 @@ export class UserSequelizeRepository implements UserRepositoryContract {
     const user = await UserModel.findByPk(userId.getValue());
     return !!user;
   }
+
 }

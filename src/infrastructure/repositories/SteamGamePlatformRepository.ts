@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { all } from "axios";
 import { ExternalGamePlatformRepositoryContract } from "../../domain/contracts/game-platform/ExternalGamePlatformRepositoryContract";
 import { GamePlatformAccount } from "../../domain/entities/GamePlatformAccount";
 import { GamePlatformAccountGame } from "../../domain/entities/GamePlatformAccountGame";
@@ -6,66 +6,37 @@ import { PinoLoggerAdapter } from "../adapters/log/PinoLoggerAdapter";
 import { LogLevel } from "../../domain/value-objects/LogLevel";
 import { MysteryBox } from "../../domain/entities/MysteryBox";
 import { MysteryBoxRoll } from "../../domain/entities/MysteryBoxRoll";
-import { Op } from "sequelize";
 import { Category } from "../../domain/entities/Category";
-import { MysteryBoxType } from "../../domain/entities/MysteryBoxType";
 import { Uuid } from "../../domain/value-objects/Uuid";
 import { GameProviderGame } from "../../domain/entities/GameProviderGame";
-import { SteamAccountReferenceGamesSequelizeRepository } from "./SteamAccountReferenceGamesSequelizeRepository";
-import { GameProviderRepositoryContract } from "../../domain/contracts/GameProviderRepositoryContract";
-
-const CategoryModel = require("../../../models").category;
+import { CategorySequelizeRepository } from "./CategorySequelizeRepository";
+import { SteamAccountSequelizeRepository } from "./SteamAccountSequelizeRepository";
 
 export class SteamGamePlatformRepository
   implements ExternalGamePlatformRepositoryContract
 {
   constructor(
-    private logger: PinoLoggerAdapter,
+    private categoryRepository: CategorySequelizeRepository,
+    private steamAccountRepository: SteamAccountSequelizeRepository,
+    private logger: PinoLoggerAdapter
   ) {}
 
-  async getAccountByUserId(
+  async getAccountBySteamUserId(
     userId: string
   ): Promise<GamePlatformAccount | null> {
-    return await axios
-      .get(`${process.env.STEAM_API_URL}/IPlayerService/GetOwnedGames/v1`, {
-        params: {
-          key: process.env.STEAM_API_KEY,
-          steamid: userId,
-          include_appinfo: false,
-          include_played_free_games: false,
-        },
-      })
-      .then((response) => {
-        this.logger.log("requested", {
-          context: "getAccountByUserId",
-          attributes: {
-            status: response.status,
-          },
-        });
-        if (response.status === 200) {
-          return new GamePlatformAccount(null, null, null, userId);
-        } else {
-          this.logger.log("unexpected status code", {
-            level: LogLevel.ERROR,
-            context: "getAccountByUserId",
-            attributes: {
-              status: response.status,
-            },
-          });
-          return null;
-        }
-      })
-      .catch((error) => {
-        this.logger.log("fatal error", {
-          level: LogLevel.FATAL,
-          context: "getAccountByUserId",
-          attributes: {
-            message: error.message,
-            stack: error.stack,
-          },
-        });
-        return null;
-      });
+    const accountGamesResponse = await this.requestAccountGames(userId, false);
+
+    if (accountGamesResponse.status === 200)
+      return new GamePlatformAccount(null, null, null, userId);
+
+    this.logger.log("unexpected status code", {
+      level: LogLevel.ERROR,
+      context: "getAccountBySteamUserId",
+      attributes: {
+        status: accountGamesResponse.status,
+      },
+    });
+    return null;
   }
 
   async getAccountByUserName(
@@ -110,7 +81,7 @@ export class SteamGamePlatformRepository
         return null;
       });
 
-    if (userId && (await this.getAccountByUserId(userId))) {
+    if (userId && (await this.getAccountBySteamUserId(userId))) {
       return new GamePlatformAccount(null, null, userName, userId);
     } else {
       return null;
@@ -121,74 +92,52 @@ export class SteamGamePlatformRepository
     account: GamePlatformAccount,
     limit: number
   ): Promise<GamePlatformAccountGame[] | null> {
-    return await axios
-      .get(`${process.env.STEAM_API_URL}/IPlayerService/GetOwnedGames/v1`, {
-        params: {
-          key: process.env.STEAM_API_KEY,
-          steamid: account.getPlatformUserId(),
-          include_appinfo: true,
-          include_played_free_games: true,
-        },
-      })
-      .then((response) => {
-        this.logger.log("requested", {
-          context: "getAccountReferenceGamesByAccount",
-          attributes: {
-            status: response.status,
-          },
+    const accountGamesResponse = await this.requestAccountGames(
+      account.getPlatformUserId(),
+      true
+    );
+
+    if (accountGamesResponse.status === 200) {
+      return accountGamesResponse.data.response.games
+        .sort((gameA: any, gameB: any) => {
+          if ((gameB.playtime_2weeks ?? 0) !== (gameA.playtime_2weeks ?? 0)) {
+            return (gameB.playtime_2weeks ?? 0) - (gameA.playtime_2weeks ?? 0);
+          }
+          return gameB.playtime_forever - gameA.playtime_forever;
+        })
+        .slice(0, limit)
+        .map((game: any) => {
+          return new GamePlatformAccountGame(
+            null,
+            account.getId()!,
+            game.appid,
+            game.name,
+            game.playtime_2weeks ?? null,
+            game.playtime_forever
+          );
         });
-        if (response.status === 200) {
-          return response.data.response.games
-            .sort((gameA: any, gameB: any) => {
-              if (
-                (gameB.playtime_2weeks ?? 0) !== (gameA.playtime_2weeks ?? 0)
-              ) {
-                return (
-                  (gameB.playtime_2weeks ?? 0) - (gameA.playtime_2weeks ?? 0)
-                );
-              }
-              return gameB.playtime_forever - gameA.playtime_forever;
-            })
-            .slice(0, limit)
-            .map((game: any) => {
-              return new GamePlatformAccountGame(
-                null,
-                account.getId()!,
-                game.appid,
-                game.name,
-                game.playtime_2weeks ?? null,
-                game.playtime_forever
-              );
-            });
-        } else {
-          this.logger.log("unexpected satus code", {
-            level: LogLevel.ERROR,
-            context: "getAccountReferenceGamesByAccount",
-            attributes: {
-              status: response.status,
-            },
-          });
-          return null;
-        }
-      })
-      .catch((error) => {
-        this.logger.log("fatal error", {
-          level: LogLevel.FATAL,
-          context: "getAccountReferenceGamesByAccount",
-          attributes: {
-            message: error.message,
-            stack: error.stack,
-          },
-        });
-        return null;
-      });
+    }
+
+    this.logger.log("unexpected satus code", {
+      level: LogLevel.ERROR,
+      context: "getAccountReferenceGamesByAccount",
+      attributes: {
+        status: accountGamesResponse.status,
+      },
+    });
+
+    return null;
   }
 
   async getAvailableGameProviderGames(
+    userId: Uuid,
     mysteryBox: MysteryBox,
     referenceGames: GamePlatformAccountGame[],
     euroAmount: number
-  ): Promise<GameProviderGame[]> {
+  ): Promise<{
+    allowedGames: GameProviderGame[];
+    matchedWithReferenceGames: GameProviderGame[];
+  }> {
     // Get the price of the mystery box
     euroAmount = euroAmount * (mysteryBox.getType()?.getMultiplier() ?? 1);
 
@@ -213,33 +162,25 @@ export class SteamGamePlatformRepository
     const categories = mysteryBox.getCategories();
     const region = mysteryBox.getRegion();
 
-    // ! BUSCAR LISTADO CATEGORÍAS STEAM, SI YA EXISTE EN MEMORIA NO HACER LA PETICIÓN 
-    const referenceGamesCategories = [
+    const referenceGamesSteamCategoriesIds = [
       ...new Set(
         (
           await Promise.all(
             referenceGames.map(async (game, index: number) => {
-              await this.delay(1000 * index);
-              const categories = await this.getGameCategories(
+              await this.delay(333 * index); // 3 requests per second
+              const steamCategoriesIds = await this.getGameSteamCategoriesIds(
                 game.getPlatformGameId()
               );
-              return categories.map((category) => JSON.stringify(category));
+              return steamCategoriesIds;
             })
           )
         ).flat()
       ),
     ].map((categoryStr) => JSON.parse(categoryStr));
 
-
-    // ! QUITAR STEAMSPY. MODIFICAR MODELOS PARA QUE JUEGOS DE REFERENCIA ALMACENEN YA EL TAG
-    // ! CRUZAR JUEGO QUE GUSTAN CON SUS CATEGORÍAS EN STEAM /3 SOLICITUDES POR SEGUNDO
-
-    // ! Los que ya tiene no los tiene que guardar como allowed, los juegos que ya tiene los ignora
-    // ! Quiero que la respuesta de este método una vez se haga no la vuelva a hacer durante la misma ejecución
-    // ! Tiene que validar por juegos de hace menos de tantos años url para ver -> https://store.steampowered.com/api/appdetails?appids=2672570
     const allowedGames = shuffle(
       await this.requestAllowedGames(
-        mysteryBox.getType(),
+        await this.requestAccountGameIds(userId),
         categories,
         region ?? "",
         euroAmount
@@ -247,48 +188,54 @@ export class SteamGamePlatformRepository
     );
 
     // Filter the games that have at least one category in common with the reference games
-    const matchedWithReference = shuffle(
+    const matchedWithReferenceGames = shuffle(
       allowedGames.filter((game) => {
-        const gameCategories = game.categories;
-        return gameCategories.some((category: Category) =>
-          referenceGamesCategories.includes(category)
+        const steamCategories: string[] = game.gameSteamCategories;
+        return steamCategories.some((category: string) =>
+          referenceGamesSteamCategoriesIds.includes(category)
         );
       })
     );
+
+    return {
+      allowedGames: allowedGames.map((game) => game.gameProviderGame),
+      matchedWithReferenceGames: matchedWithReferenceGames.map(
+        (game) => game.gameProviderGame
+      ),
+    };
   }
 
   async getMysteryBoxRollOption(
-    mysteryBox: MysteryBox,
-    gameProviderGames: GameProviderGame[],
+    games: GameProviderGame[],
+    matchedWithReferenceGames: GameProviderGame[],
     euroAmount: number
   ): Promise<MysteryBoxRoll> {
-
     // If the amount of games that match with the reference games is less than the 40% of the total amount of games requested
     // get the 20 games at least without matching with the reference games
     const minimumGames = 20;
     const minimumPercentage = 40;
     const requiredGamesCount = Math.max(
       minimumGames,
-      Math.ceil(allowedGames.length * (minimumPercentage / 100))
+      Math.ceil(games.length * (minimumPercentage / 100))
     );
 
     const finalGames =
-      matchedWithReference.length >= requiredGamesCount
-        ? matchedWithReference.slice(0, requiredGamesCount)
-        : allowedGames.slice(0, requiredGamesCount);
+      matchedWithReferenceGames.length >= requiredGamesCount
+        ? matchedWithReferenceGames.slice(0, requiredGamesCount)
+        : games.slice(0, requiredGamesCount);
 
     const mysteryBoxRollId = Uuid.create();
 
     // Get a random game or 2 games from the final games
     const randomGame =
       finalGames[Math.floor(Math.random() * finalGames.length)];
-    const gamePrice = randomGame.gameData.price;
+    const gamePrice = randomGame.getGamePlatformPrice() ?? 0;
 
-    const gameProciderGames = [
+    const gameProviderGames = [
       new GameProviderGame(
         Uuid.create(),
         mysteryBoxRollId,
-        randomGame.gameData.name,
+        randomGame.getName(),
         gamePrice,
         null,
         null,
@@ -307,7 +254,7 @@ export class SteamGamePlatformRepository
           game.gameData.price <= euroAmount - gamePrice
       );
       if (secondRandomGame) {
-        gameProciderGames.push(
+        gameProviderGames.push(
           new GameProviderGame(
             Uuid.create(),
             mysteryBoxRollId,
@@ -329,26 +276,65 @@ export class SteamGamePlatformRepository
       false,
       false,
       null,
-      gameProciderGames
+      gameProviderGames
     );
   }
 
-
   // ---------------------------- PRIVATE METHODS ----------------------------
 
+  private async getGameSteamCategoriesIds(
+    steamGameId: number
+  ): Promise<string[]> {
+    return await axios
+      .get(`${process.env.STEAM_API_URL}/api/appdetails`, {
+        params: {
+          appids: steamGameId,
+        },
+      })
+      .then((response) => {
+        this.logger.log("requested", {
+          context: "getGameSteamCategoriesIds",
+          attributes: {
+            status: response.status,
+          },
+        });
+        if (response.status === 200) {
+          return Object.values(response.data).map((gameData: any) =>
+            gameData.categories.map((category: any) => category.id)
+          );
+        } else {
+          this.logger.log("unexpected status code", {
+            level: LogLevel.ERROR,
+            context: "getGameSteamCategoriesIds",
+            attributes: {
+              status: response.status,
+            },
+          });
+          return [];
+        }
+      })
+      .catch((error) => {
+        this.logger.log("fatal error", {
+          level: LogLevel.FATAL,
+          context: "getGameSteamCategoriesIds",
+          attributes: {
+            message: error.message,
+            stack: error.stack,
+          },
+        });
+        return [];
+      });
+  }
+
   private async requestAllowedGames(
-    mysteryBoxType: MysteryBoxType | null,
+    accountGameIds: number[],
     categories: Category[] | null,
     region: string,
     euroAmount: number
   ): Promise<
     {
-      gameData: {
-        id: number;
-        name: string;
-        price: number;
-      };
-      categories: Category[];
+      gameSteamCategories: string[];
+      gameProviderGame: GameProviderGame;
     }[]
   > {
     // The maximum amount of games to request is 10000
@@ -369,18 +355,18 @@ export class SteamGamePlatformRepository
             released_only: true,
             price_filters: { exclude_free_items: true },
             type_filters: {
-              include_apps: "",
-              include_packages: "",
-              include_bundles: "",
+              include_apps: false,
+              include_packages: false,
+              include_bundles: false,
               include_games: true,
-              include_demos: "",
-              include_mods: "",
-              include_dlc: "",
-              include_software: "",
-              include_video: "",
-              include_hardware: "",
-              include_series: "",
-              include_music: "",
+              include_demos: false,
+              include_mods: false,
+              include_dlc: false,
+              include_software: false,
+              include_video: false,
+              include_hardware: false,
+              include_series: false,
+              include_music: false,
             },
             tagids_must_match: [
               {
@@ -390,12 +376,25 @@ export class SteamGamePlatformRepository
           },
         },
         context: {
-          language: "",
           country_code: region ?? "ES",
         },
         data_request: {
+          include_assets: false,
+          include_release: true,
+          include_platforms: false,
+          include_all_purchase_options: false,
+          include_screenshots: false,
+          include_trailers: false,
           include_ratings: false,
+          include_tag_count: "10", // Get the first 10 tags
+          include_reviews: true,
           include_basic_info: false,
+          include_supported_languages: false,
+          include_full_description: false,
+          include_included_items: false,
+          include_assets_without_overrides: false,
+          apply_user_filters: false,
+          include_links: false,
         },
       });
 
@@ -440,48 +439,54 @@ export class SteamGamePlatformRepository
                   (Number(process.env.MIN_AMOUNT_PERCENTAGE_FOR_1_GAME) / 100) *
                     euroAmount));
 
-          //!OIJSDOIAS
-              const data = response.data;
-              const minOwners = Number(
-                response.data.owners.split(" .. ")[0] ?? 0
-              );
-              // Check if at least the 80% of the reviews are positive and if has more than 50000 downloads
-              return (
-                data.positive > 0.8 * (data.positive + data.negative) &&
-                minOwners > Number(process.env.MIN_GAME_OWNERS)
-                //!OIJSDOIAS
-                
+          // More than 100 reviews and at least 80% of the reviews are positive
+          const reviewData = item.reviews.summary_filtered ?? null;
+          const hasValidValorations =
+            (reviewData?.review_count ?? 0) > 100 &&
+            reviewData?.review_score >= 7;
+          const alreadyHasGame = accountGameIds.includes(item.id);
+
+          // Games from the last 8 years
+          const releases = item.release;
+          const releaseYear = new Date(
+            ((releases?.original_release_date ||
+              releases?.original_steam_release_date ||
+              releases?.steam_release_date) ??
+              0) * 1000 // Convert to milliseconds
+          ).getFullYear();
+          const validReleaseDate =
+            releaseYear >=
+            new Date().getFullYear() -
+              Number(process.env.MAX_GAME_RELEASE_YEARS_AGO);
+
           return (
-            isValidName && isPriceValid && this.checkGameValorations(item.id)
+            isValidName &&
+            isPriceValid &&
+            hasValidValorations &&
+            validReleaseDate &&
+            !alreadyHasGame
           );
         });
 
         // Add the new items to the items array
         items = items.concat(
           await Promise.all(
-            newItems.map(async (item: any, index: number) => {
-              await this.delay(1000 * index);
-              
-              //!OIJSDOIAS
-              const data = response.data;
-              const minOwners = Number(
-                response.data.owners.split(" .. ")[0] ?? 0
-              );
-              // Check if at least the 80% of the reviews are positive and if has more than 50000 downloads
-              return (
-                data.positive > 0.8 * (data.positive + data.negative) &&
-                minOwners > Number(process.env.MIN_GAME_OWNERS)
-                //!OIJSDOIAS
-                
-
-              return {
-              gameData: {
-                id: item.id,
-                name: item.name,
-                price: item.best_purchase_option.original_price_in_cents / 100,
-              },
-              categories: await this.getGameCategories(item.id),
-            }})
+            newItems.map(async (item: any) => ({
+              gameSteamCategories: item?.categories?.feature_categoryids ?? [],
+              gameProviderGame: new GameProviderGame(
+                Uuid.create(), // id
+                null, // mysteryBoxRollId
+                item.name, // name
+                null, // imgUrl
+                null, // region
+                null, // platform
+                null, // externalData
+                item.best_purchase_option.original_price_in_cents / 100, // gamePlatformPrice
+                await this.categoryRepository.getByIds(
+                  item.tagids ?? []
+                ) // categories
+              ),
+            }))
           )
         );
 
@@ -504,5 +509,69 @@ export class SteamGamePlatformRepository
     return items;
   }
 
-  private delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+  private async requestAccountGameIds(userId: Uuid): Promise<number[]> {
+    const account = await this.steamAccountRepository.getByUserId(userId);
+    if (!account) {
+      return [];
+    }
+    const accountGamesResponse = await this.requestAccountGames(
+      account.getPlatformUserId(),
+      false
+    );
+
+    if (accountGamesResponse.status === 200) {
+      return accountGamesResponse.data.response.games.map(
+        (game: any) => game.appid
+      );
+    }
+
+    this.logger.log("unexpected status code", {
+      level: LogLevel.ERROR,
+      context: "requestAccountGameIds",
+      attributes: {
+        status: accountGamesResponse.status,
+      },
+    });
+    return [];
+  }
+
+  private async requestAccountGames(
+    steamId: string | null,
+    includeAppInfo: boolean
+  ): Promise<any> {
+    if (!steamId) return [];
+
+    return await axios
+      .get(`${process.env.STEAM_API_URL}/IPlayerService/GetOwnedGames/v1`, {
+        params: {
+          key: process.env.STEAM_API_KEY,
+          steamid: steamId,
+          include_appinfo: includeAppInfo,
+          include_played_free_games: true,
+        },
+      })
+      .then((response) => {
+        this.logger.log("requested", {
+          context: "requestAccountGames",
+          attributes: {
+            status: response.status,
+          },
+        });
+        return response;
+      })
+      .catch((error) => {
+        this.logger.log("fatal error", {
+          level: LogLevel.FATAL,
+          context: "requestAccountGames",
+          attributes: {
+            message: error.message,
+            stack: error.stack,
+          },
+        });
+        return [];
+      });
+  }
+
+  private delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 }

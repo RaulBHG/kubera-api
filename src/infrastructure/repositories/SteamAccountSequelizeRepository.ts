@@ -22,4 +22,22 @@ export class SteamAccountSequelizeRepository implements GamePlatformAccountRepos
       newAccount.steam_userid
     );
   }
+
+  async getByUserId(userId: Uuid): Promise<GamePlatformAccount | null> {
+    const account = await AccountModel.findOne({
+      where: {
+        user_id: userId.getValue(),
+      },
+    });
+    if (!account) {
+      return null;
+    }
+
+    return new GamePlatformAccount(
+      account.id,
+      account.user_id,
+      account.steam_username,
+      account.steam_userid
+    );
+  }
 }
