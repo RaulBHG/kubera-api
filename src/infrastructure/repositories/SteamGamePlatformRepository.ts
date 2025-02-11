@@ -192,9 +192,19 @@ export class SteamGamePlatformRepository
     const matchedWithReferenceGames = shuffle(
       allowedGames.filter((game) => {
         const steamCategories: string[] = game.gameSteamCategories;
-        return steamCategories.some((category: string) =>
-          referenceGamesSteamCategoriesIds.includes(category)
-        );
+        if (!categories || !categories.length) {
+          // If categories is null or empty, match games with at least 5 categories
+          return (
+            steamCategories.filter((category: string) =>
+              referenceGamesSteamCategoriesIds.includes(category)
+            ).length >= Number(process.env.ON_EMPTY_CATEGORIES_NUMBER_TO_MATCH_STEAM)
+          );
+        } else {
+          // If categories is not null and has at least one element, match games with at least one category
+          return steamCategories.some((category: string) =>
+            referenceGamesSteamCategoriesIds.includes(category)
+          );
+        }
       })
     );
 
