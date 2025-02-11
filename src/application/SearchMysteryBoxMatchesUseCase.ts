@@ -111,12 +111,15 @@ export class SearchMysteryBoxMatchesUseCase {
         userUuid
       );
 
+    // TODO: AMOUNT NOT HARDCODED
+    const euroAmount = 30 * (mysteryBox.getType()?.getMultiplier() ?? 1); // Get the price of the mystery box
+
     const games =
       await this.externalGamePlatformRepository.getAvailableGameProviderGames(
         userUuid,
         mysteryBox,
         accountGames,
-        30
+        euroAmount
       );
 
     const uniqueRolls: MysteryBoxRoll[] = [];
@@ -126,7 +129,7 @@ export class SearchMysteryBoxMatchesUseCase {
           mysteryBox,
           games.allowedGames,
           games.matchedWithReferenceGames,
-          30 // TODO: AMOUNT NOT HARDCODED
+          euroAmount
         );
 
       if (this.isDuplicateRoll(rollOption, uniqueRolls)) continue;
@@ -138,7 +141,7 @@ export class SearchMysteryBoxMatchesUseCase {
         );
 
       // TODO: This is mocked
-      if(!validatedRoll){
+      if (!validatedRoll) {
         validatedRoll = rollOption;
       }
 

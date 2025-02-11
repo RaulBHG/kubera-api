@@ -138,9 +138,6 @@ export class SteamGamePlatformRepository
     allowedGames: GameProviderGame[];
     matchedWithReferenceGames: GameProviderGame[];
   }> {
-    // Get the price of the mystery box
-    euroAmount = euroAmount * (mysteryBox.getType()?.getMultiplier() ?? 1);
-
     const shuffle = (array: any[]): any[] => {
       let currentIndex = array.length;
 
@@ -192,27 +189,35 @@ export class SteamGamePlatformRepository
     const matchedWithReferenceGames = shuffle(
       allowedGames.filter((game) => {
         const steamCategories: string[] = game.gameSteamCategories;
+        let minMatchNumber = Number(
+          process.env.ON_CATEGORIES_NUMBER_TO_MATCH_STEAM ?? 1
+        );
         if (!categories || !categories.length) {
-          // If categories is null or empty, match games with at least 5 categories
-          return (
-            steamCategories.filter((category: string) =>
-              referenceGamesSteamCategoriesIds.includes(category)
-            ).length >= Number(process.env.ON_EMPTY_CATEGORIES_NUMBER_TO_MATCH_STEAM)
-          );
-        } else {
-          // If categories is not null and has at least one element, match games with at least one category
-          return steamCategories.some((category: string) =>
-            referenceGamesSteamCategoriesIds.includes(category)
+          minMatchNumber = Number(
+            process.env.ON_EMPTY_CATEGORIES_NUMBER_TO_MATCH_STEAM ?? 1
           );
         }
+
+        return (
+          steamCategories.filter((category: string) =>
+            referenceGamesSteamCategoriesIds.includes(category)
+          ).length >=
+          Number(process.env.ON_EMPTY_CATEGORIES_NUMBER_TO_MATCH_STEAM)
+        );
       })
     );
 
+    // Remove matchedWithReferenceGames from allowedGames
+    const filteredAllowedGames = allowedGames.filter(
+      (game) => !matchedWithReferenceGames.includes(game)
+    );
+
     return {
-      allowedGames: allowedGames.map((game) => game.gameProviderGame),
-      matchedWithReferenceGames: matchedWithReferenceGames.map(
-        (game) => game.gameProviderGame
-      ),
+      allowedGames: filteredAllowedGames.map((game) => game.gameProviderGame),
+      matchedWithReferenceGames:
+        matchedWithReferenceGames.length > 50
+          ? matchedWithReferenceGames.map((game) => game.gameProviderGame)
+          : [], // At least 100 games
     };
   }
 
@@ -224,14 +229,16 @@ export class SteamGamePlatformRepository
   ): Promise<MysteryBoxRoll> {
     // If the amount of games that match with the reference games is less than the 40% of the total amount of games requested
     // get the 20 games at least without matching with the reference games
-    const minimumGames = 40;
+    const minimumGames = 50;
+    const maxGames = 700;
     const minimumPercentage = 40;
+    const calculatedGames = Math.ceil(games.length * (minimumPercentage / 100));
     const requiredGamesCount = Math.max(
       minimumGames,
-      Math.ceil(games.length * (minimumPercentage / 100))
+      Math.min(calculatedGames, maxGames)
     );
 
-    let finalGames = matchedWithReferenceGames.slice();
+    let finalGames = matchedWithReferenceGames.slice(0, maxGames);
 
     // If the amount of games that match with the reference games is less than the 40% of the total amount of games requested
     if (finalGames.length < requiredGamesCount) {
@@ -247,52 +254,72 @@ export class SteamGamePlatformRepository
     }
 
     const mysteryBoxRollId = Uuid.create();
+    let totalPrice = 0;
+    let gameProviderGames: GameProviderGame[] = [];
+    let totalLoops = 0;
 
-    // Get a random game or 2 games from the final games
-    const randomGame =
-      finalGames[Math.floor(Math.random() * finalGames.length)];
-    if (!randomGame || !randomGame.getGamePlatformPrice()) {
-      throw new Error("No games found");
-    }
-    const gamePrice = randomGame.getGamePlatformPrice() ?? 0;
+    while (
+      totalPrice <
+      euroAmount * (Number(process.env.MIN_AMOUNT_PERCENTAGE ?? 90) / 100) &&
+      totalLoops < 500
+    ) {
+      totalLoops++;
+      // Get a random game or 2 games from the final games
+      const randomGame =
+        finalGames[Math.floor(Math.random() * finalGames.length)];
+      if (!randomGame || !randomGame.getGamePlatformPrice()) {
+        throw new Error("No games found");
+      }
 
-    const gameProviderGames = [
+      const gamePrice = randomGame.getGamePlatformPrice() ?? 0;
+      
+      if (
+        totalPrice + gamePrice >= euroAmount ||
+        gameProviderGames.some((game) => game.getName() === randomGame.getName())
+      ) {
+        break;
+      }
 
-      new GameProviderGame(
-        Uuid.create(), // id
-        mysteryBoxRollId, // mysteryBoxRollId
-        randomGame.getName(), // name
-        randomGame.getImgUrl(), // imgUrl
-        randomGame.getRegion(), // region
-        randomGame.getPlatform(), // platform
-        randomGame.getExternalData(), // externalData
-        gamePrice, // gamePlatformPrice
-        randomGame.getCategories() // categories
-      ),
-
-    ];
-
-    // Try to get a second game
-    const secondRandomGame = finalGames.find(
-      (game) =>
-        game.getId() !== randomGame.getId() &&
-        (game.getGamePlatformPrice() ?? 0) <= euroAmount - gamePrice &&
-        (game.getGamePlatformPrice() ?? 0) >= (euroAmount - gamePrice) * 0.93 // 93% of the remaining amount
-    );
-    if (secondRandomGame) {
       gameProviderGames.push(
         new GameProviderGame(
           Uuid.create(), // id
           mysteryBoxRollId, // mysteryBoxRollId
-          secondRandomGame.getName(), // name
-          secondRandomGame.getImgUrl(), // imgUrl
-          secondRandomGame.getRegion(), // region
-          secondRandomGame.getPlatform(), // platform
-          secondRandomGame.getExternalData(), // externalData
-          secondRandomGame.getGamePlatformPrice(), // gamePlatformPrice
-          secondRandomGame.getCategories() // categories
-        )
+          randomGame.getName(), // name
+          randomGame.getImgUrl(), // imgUrl
+          randomGame.getRegion(), // region
+          randomGame.getPlatform(), // platform
+          randomGame.getExternalData(), // externalData
+          gamePrice, // gamePlatformPrice
+          randomGame.getCategories() // categories
+        ),
       );
+
+      totalPrice += gamePrice;
+      
+
+      // Try to get a second game
+      /*const secondRandomGame = finalGames.find(
+        (game) =>
+          game.getId() !== randomGame.getId() &&
+          (game.getGamePlatformPrice() ?? 0) <= euroAmount - gamePrice &&
+          (game.getGamePlatformPrice() ?? 0) >=
+            (euroAmount - gamePrice) * (Number(process.env.MIN_AMOUNT_PERCENTAGE ?? 93) / 100) // 93% of the remaining amount
+      );
+      if (secondRandomGame) {
+        gameProviderGames.push(
+          new GameProviderGame(
+            Uuid.create(), // id
+            mysteryBoxRollId, // mysteryBoxRollId
+            secondRandomGame.getName(), // name
+            secondRandomGame.getImgUrl(), // imgUrl
+            secondRandomGame.getRegion(), // region
+            secondRandomGame.getPlatform(), // platform
+            secondRandomGame.getExternalData(), // externalData
+            secondRandomGame.getGamePlatformPrice(), // gamePlatformPrice
+            secondRandomGame.getCategories() // categories
+          )
+        );
+      }*/
     }
 
     return new MysteryBoxRoll(
@@ -370,18 +397,22 @@ export class SteamGamePlatformRepository
     // The start index to request the games
     let start = 0;
     let items: any[] = [];
+    let totalMatchingRecords = 1000000000;
 
     const categoryExternalIds = categories?.map((category) => category.getExternalId()) ?? [];
 
     // Request games until the items array has the maxGamesToRequest length
     while (items.length < maxGamesToRequest) {
+
       const query = {
         query: {
           start: start.toString(),
           count: (maxGamesToRequest - items.length).toString(),
           filters: {
-            regional_top_n_sellers: "30000",
-            global_top_n_sellers: "50000",
+            //regional_top_n_sellers:
+            //process.env.STEAM_REGIONAL_TOP_N_SELLERS?.toString() ?? "30000",
+            global_top_n_sellers:
+              process.env.STEAM_GLOBAL_TOP_N_SELLERS?.toString() ?? "10000000",
             released_only: true,
             price_filters: { only_free_items: "", exclude_free_items: true },
             type_filters: {
@@ -428,9 +459,11 @@ export class SteamGamePlatformRepository
             tagids: categoryExternalIds,
         });
       }
+      if (totalMatchingRecords < 1450){
+        query.query.filters.global_top_n_sellers = ""; // No limit
+      }
 
       const formattedQuery = JSON.stringify(query);
-
 
       const response = await axios.get(
         `${process.env.STEAM_API_URL}/IStoreQueryService/Query/v1`,
@@ -451,45 +484,58 @@ export class SteamGamePlatformRepository
 
       if (response.status === 200 && response.data?.response?.store_items) {
 
+        // Steam Pagination
+        totalMatchingRecords =
+          response.data.response.metadata.total_matching_records;
+        const currentCount = response.data.response.metadata.count;
+
         const storeItems = response.data.response.store_items;
         // Filter the steam response to get only the games that match the criteria
         const newItems = storeItems.filter((item: any) => {
 
           // If is free, skip
-          if (item?.is_free) return false;
+          if (item?.is_free || !item?.best_purchase_option) return false;
 
           // A valid name is only composed by letters and spaces and doesn't end with a number
           const itemName = item.name;
           const isValidName =
-            /^[a-zA-Z\s]+$/.test(itemName) && !/\s\d$/.test(itemName);
+            /^[a-zA-Z\s]+$/.test(itemName) &&
+            !/\s\d$/.test(itemName) &&
+            !/\s[Vv][Rr]$/.test(itemName);
 
           // Check if the price is valid
           const price =
-            Number(item.best_purchase_option.final_price_in_cents) / 100;
+            Number(
+              item.best_purchase_option?.original_price_in_cents ??
+              item.best_purchase_option.final_price_in_cents
+            ) / 100;
 
           const amountToGet2Games = Number(process.env.AMOUNT_TO_GET_2_GAMES);
 
           const isPriceValid =
             price <= euroAmount &&
-            (
-              (euroAmount < amountToGet2Games &&
+            ((euroAmount < amountToGet2Games &&
               price >=
                 (Number(process.env.MIN_AMOUNT_PERCENTAGE_FOR_1_GAME) / 100) *
                   euroAmount) ||
               (euroAmount >= amountToGet2Games &&
                 price >=
-                  (Number(process.env.MIN_AMOUNT_PERCENTAGE_FOR_1_GAME) / 100) *
+                  (Number(process.env.MIN_AMOUNT_PERCENTAGE_FOR_1_GAME) /
+                    100) *
                     euroAmount) ||
-              (price >=
-                  ((100 - Number(process.env.MAX_AMOUNT_PERCENTAGE_FOR_SECOND_GAME)) / 100) *
-                    euroAmount)
-            );
+              price >=
+                ((100 -
+                  Number(process.env.MAX_AMOUNT_PERCENTAGE_FOR_SECOND_GAME)) /
+                  100) *
+                  euroAmount);
 
           // More than 100 reviews and at least 80% of the reviews are positive
           const reviewData = item.reviews.summary_filtered ?? null;
           const hasValidValorations =
-            (reviewData?.review_count ?? 0) > 100 &&
-            reviewData?.review_score >= 7;
+            (reviewData?.review_count ?? 0) >
+              Number(process.env.MIN_GAME_REVIEWS ?? 700) &&
+            reviewData?.review_score >=
+              Number(process.env.STEAM_MIN_REVIEW_SCORE ?? 7);
           const alreadyHasGame = accountGameIds.includes(item.appid);
 
           // Games from the last 8 years
@@ -536,7 +582,10 @@ export class SteamGamePlatformRepository
                 null, // region
                 null, // platform
                 null, // externalData
-                Number(item.best_purchase_option.final_price_in_cents) / 100, // gamePlatformPrice
+                Number(
+                  item.best_purchase_option?.original_price_in_cents ??
+                  item.best_purchase_option.final_price_in_cents
+                ) / 100, // gamePlatformPrice
                 await this.categoryRepository.getByIds(
                   item.tagids ?? []
                 ) // categories
@@ -545,14 +594,10 @@ export class SteamGamePlatformRepository
           )
         );
 
-        // If the total of items requested is greater than the total of items available, break the loop
-        const totalMatchingRecords =
-          response.data.response.metadata.total_matching_records;
-        const currentCount =
-          response.data.response.metadata.count;
+        // If the total of items requested is greater than the total of items available, break the loop        
         if (start + storeItems.length >= totalMatchingRecords) break;
-
         start += currentCount;
+
       } else {
         throw new Error(
           "Unexpected status code " +
