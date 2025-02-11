@@ -182,13 +182,13 @@ paths:
           $ref: '#/components/responses/NotValidUrl'
         '400':
           $ref: '#/components/responses/InternalServerError'
-  '/api/mystery-box/user/{user_id}/search-matches':
+  '/api/mystery-box/user/{userId}/search-matches':
     get:
       description: Busca 2 juegos que estén bien valorados en steam, que haya una key por menos de lo que valen en kinguin y los almacenamos en 2 registros en bbdd asociados a el id del usuario que hemos almacenado en el registro anterior (junto con los datos del usuario habremos solicitado el email, esto va junto con el pago, que está para desarrollar más adelante). Esto verifica de la bbdd de hucha el dinero acumulado y hace un ramdom en caso de que haya suficiente para darle una recompensa. <br> Hay que <b>validar</b> desde back que la información de compra permite realizar esta búsqueda, que no se ha realizado ya y que la opción solicita existe y que no ha sido retornada con anterioridad.
       parameters:
         - $ref: '#/components/parameters/AcceptHeader'
         - in: path
-          name: user_id
+          name: userId
           required: true
           schema:
             type: string
@@ -216,7 +216,7 @@ paths:
           schema:
             type: integer
             default: 1
-          description: Límit 2
+          description: Límit 3
         - in: query
           name: datos_necesarios_asociados_al_pago
           required: false

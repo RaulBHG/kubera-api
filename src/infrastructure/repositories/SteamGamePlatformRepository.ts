@@ -167,6 +167,7 @@ export class SteamGamePlatformRepository
         (
           await Promise.all(
             referenceGames.flatMap(async (game, index: number) => {
+              // TODO: No tener que añadir delay
               await this.delay(333 * index); // 3 requests per second
               const steamCategoriesIds = await this.getGameSteamCategoriesIds(
                 game.getPlatformGameId()
@@ -240,6 +241,9 @@ export class SteamGamePlatformRepository
     // Get a random game or 2 games from the final games
     const randomGame =
       finalGames[Math.floor(Math.random() * finalGames.length)];
+    if (!randomGame || !randomGame.getGamePlatformPrice()) {
+      throw new Error("No games found");
+    }
     const gamePrice = randomGame.getGamePlatformPrice() ?? 0;
 
     const gameProviderGames = [
@@ -369,7 +373,7 @@ export class SteamGamePlatformRepository
             regional_top_n_sellers: "30000",
             global_top_n_sellers: "50000",
             released_only: true,
-            price_filters: { exclude_free_items: true },
+            price_filters: { only_free_items: "", exclude_free_items: true },
             type_filters: {
               include_apps: "",
               include_packages: "",
@@ -384,11 +388,7 @@ export class SteamGamePlatformRepository
               include_series: "",
               include_music: "",
             },
-            tagids_must_match: [
-              {
-                tagids: categoryExternalIds,
-              },
-            ],
+            tagids_must_match: [] as { tagids: Number[] }[],
           },
         },
         context: {
@@ -413,6 +413,12 @@ export class SteamGamePlatformRepository
           include_links: "",
         },
       };
+      if(categoryExternalIds.length > 0) {
+        query.query.filters.tagids_must_match.push({
+            tagids: categoryExternalIds,
+        });
+      }
+
       const formattedQuery = JSON.stringify(query);
 
 
@@ -438,13 +444,18 @@ export class SteamGamePlatformRepository
         const storeItems = response.data.response.store_items;
         // Filter the steam response to get only the games that match the criteria
         const newItems = storeItems.filter((item: any) => {
+
+          // If is free, skip
+          if (item?.is_free) return false;
+
           // A valid name is only composed by letters and spaces and doesn't end with a number
           const itemName = item.name;
           const isValidName =
             /^[a-zA-Z\s]+$/.test(itemName) && !/\s\d$/.test(itemName);
 
           // Check if the price is valid
-          const price = Number(item.best_purchase_option.final_price_in_cents) / 100;
+          const price =
+            Number(item.best_purchase_option.final_price_in_cents) / 100;
 
           const amountToGet2Games = Number(process.env.AMOUNT_TO_GET_2_GAMES);
 
@@ -484,9 +495,12 @@ export class SteamGamePlatformRepository
             new Date().getFullYear() -
               Number(process.env.MAX_GAME_RELEASE_YEARS_AGO);
 
-            const hasAtLeastOneCategory = item.tagids?.some((tagId: Number) =>
-              categoryExternalIds.includes(tagId)
-            );
+            const hasAtLeastOneCategory =
+              categoryExternalIds && categoryExternalIds.length
+                ? item.tagids?.some((tagId: Number) =>
+                    categoryExternalIds.includes(tagId)
+                  )
+                : true;
 
           return (
             isValidName &&
@@ -497,6 +511,7 @@ export class SteamGamePlatformRepository
             !alreadyHasGame
           );
         });
+        
 
         // Add the new items to the items array
         items = items.concat(
@@ -523,9 +538,11 @@ export class SteamGamePlatformRepository
         // If the total of items requested is greater than the total of items available, break the loop
         const totalMatchingRecords =
           response.data.response.metadata.total_matching_records;
+        const currentCount =
+          response.data.response.metadata.count;
         if (start + storeItems.length >= totalMatchingRecords) break;
 
-        start += newItems.length;
+        start += currentCount;
       } else {
         throw new Error(
           "Unexpected status code " +

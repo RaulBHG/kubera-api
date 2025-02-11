@@ -41,7 +41,7 @@ export class SearchMysteryBoxMatchesUseCase {
       userIdUuid
     );
 
-    //! Si ya existe un rerollOption lo usamos
+    // TODO Si ya existe un rerollOption lo usamos
     if (!activeMysteryBox) {
       // TODO: AMOUNT NOT HARDCODED
       const type = await this.mysteryBoxTypeRepository.getTypeForAmount(30);
@@ -94,6 +94,9 @@ export class SearchMysteryBoxMatchesUseCase {
       // If has been rejected bock on canjeo
       //return await this.formatResult(finalMysteryBox, rerollOption);
     } else {
+
+      // TODO: Implementar cuando ya existe un mystery box activo
+
       return null;
       //return await this.formatResult(activeMysteryBox, rerollOption);
     }
@@ -123,17 +126,18 @@ export class SearchMysteryBoxMatchesUseCase {
           mysteryBox,
           games.allowedGames,
           games.matchedWithReferenceGames,
-          30
+          30 // TODO: AMOUNT NOT HARDCODED
         );
 
       if (this.isDuplicateRoll(rollOption, uniqueRolls)) continue;
 
-      // This is mocked
+      // TODO: Set as constant and implement chain of responsibility
       let validatedRoll =
         await this.gameProviderRepository.validateAndReturnMysteryBoxRoll(
           rollOption
         );
 
+      // TODO: This is mocked
       if(!validatedRoll){
         validatedRoll = rollOption;
       }

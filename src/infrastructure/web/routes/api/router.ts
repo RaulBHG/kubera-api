@@ -23,8 +23,9 @@ mysteryBoxRouter.get("/platform", (req: Request, res: Response) => {
 });
 
 const mysteryBoxController: MysteryBoxController = diContainer.resolve("mysteryBoxController");
-mysteryBoxRouter.get("/search-matchs/reroll-option", (req: Request, res: Response) => {
-  mysteryBoxController.getRollOption(res);
+mysteryBoxRouter.get("/user/:userId/search-maches", (req: Request, res: Response) => {
+  const userId = req.params.userId;
+  mysteryBoxController.getRollOption(userId, req, res);
 });
 
 app.use("/mystery-box", mysteryBoxRouter);
