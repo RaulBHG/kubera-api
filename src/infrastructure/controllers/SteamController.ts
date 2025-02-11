@@ -7,6 +7,7 @@ import { SteamAccountReferenceGamesSequelizeRepository } from "../repositories/S
 import { Controller } from "./Controller";
 import Joi from "joi";
 import { PinoLoggerAdapter } from "../adapters/log/PinoLoggerAdapter";
+import { CategorySequelizeRepository } from "../repositories/CategorySequelizeRepository";
 
 export class SteamController extends Controller {
   async storeAccountData(req: Request, res: Response): Promise<void> {
@@ -24,7 +25,11 @@ export class SteamController extends Controller {
       const clientIp = req.ip;
 
       const useCase = new StoreExternalGamePlatformAccountUseCase(
-        new SteamGamePlatformRepository(loggerAdapter),
+        new SteamGamePlatformRepository(
+          new CategorySequelizeRepository(),
+          new SteamAccountSequelizeRepository(),
+          loggerAdapter
+        ),
         new UserSequelizeRepository(),
         new SteamAccountSequelizeRepository(),
         new SteamAccountReferenceGamesSequelizeRepository(),

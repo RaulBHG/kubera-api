@@ -25,7 +25,8 @@ export interface ExternalGamePlatformRepositoryContract {
 
   getMysteryBoxRollOption(
     mysteryBox: MysteryBox,
-    gameProviderGame: GameProviderGame[],
+    games: GameProviderGame[],
+    matchedWithReferenceGames: GameProviderGame[],
     euroAmount: number
   ): Promise<MysteryBoxRoll>;
 }

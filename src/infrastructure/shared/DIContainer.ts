@@ -7,6 +7,7 @@ import { MysteryBoxSequelizeRepository } from "../repositories/MysteryBoxSequeli
 import { MysteryBoxTypeSequelizeRepository } from "../repositories/MysteryBoxTypeSequelizeRepository";
 import { PlatformSequelizeRepository } from "../repositories/PlatformSequelizeRepository";
 import { SteamAccountReferenceGamesSequelizeRepository } from "../repositories/SteamAccountReferenceGamesSequelizeRepository";
+import { SteamAccountSequelizeRepository } from "../repositories/SteamAccountSequelizeRepository";
 import { SteamGamePlatformRepository } from "../repositories/SteamGamePlatformRepository";
 import { UserSequelizeRepository } from "../repositories/UserSequelizeRepository";
 
@@ -28,6 +29,7 @@ DIContainer.register({
   gamePlatformAccountGamesRepository: asClass(
     SteamAccountReferenceGamesSequelizeRepository
   ).scoped(),
+  platformAccountReporitory: asClass(SteamAccountSequelizeRepository).scoped(),
   externalGamePlatformRepository: asClass(SteamGamePlatformRepository).scoped(),
 
   // ---------------- USE CASES ----------------

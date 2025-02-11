@@ -108,7 +108,7 @@ export class SearchMysteryBoxMatchesUseCase {
         userUuid
       );
 
-    const availableGames =
+    const games =
       await this.externalGamePlatformRepository.getAvailableGameProviderGames(
         userUuid,
         mysteryBox,
@@ -121,16 +121,23 @@ export class SearchMysteryBoxMatchesUseCase {
       const rollOption =
         await this.externalGamePlatformRepository.getMysteryBoxRollOption(
           mysteryBox,
-          availableGames,
+          games.allowedGames,
+          games.matchedWithReferenceGames,
           30
         );
 
       if (this.isDuplicateRoll(rollOption, uniqueRolls)) continue;
 
-      const validatedRoll =
+      // This is mocked
+      let validatedRoll =
         await this.gameProviderRepository.validateAndReturnMysteryBoxRoll(
           rollOption
         );
+
+      if(!validatedRoll){
+        validatedRoll = rollOption;
+      }
+
       if (validatedRoll) {
         uniqueRolls.push(validatedRoll);
         if (uniqueRolls.length === 3) break;

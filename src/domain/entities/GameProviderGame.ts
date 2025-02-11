@@ -27,10 +27,6 @@ export class GameProviderGame {
     return this.name;
   }
 
-  getPrice(): number {
-    return this.price;
-  }
-
   getImgUrl(): string | null {
     return this.imgUrl;
   }

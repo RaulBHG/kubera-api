@@ -19,7 +19,7 @@ module.exports = {
         allowNull: true,
       },
       external_id: {
-        type: Sequelize.STRING,
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
       visible: {
@@ -29,12 +29,12 @@ module.exports = {
       },
       created_at: {
         allowNull: false,
-        type: 'TIMESTAMP',
+        type: "TIMESTAMP",
         defaultValue: Sequelize.NOW,
       },
       updated_at: {
         allowNull: false,
-        type: 'TIMESTAMP',
+        type: "TIMESTAMP",
         defaultValue: Sequelize.NOW,
       },
     });

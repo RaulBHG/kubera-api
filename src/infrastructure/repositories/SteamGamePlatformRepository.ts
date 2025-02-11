@@ -17,7 +17,7 @@ export class SteamGamePlatformRepository
 {
   constructor(
     private categoryRepository: CategorySequelizeRepository,
-    private steamAccountRepository: SteamAccountSequelizeRepository,
+    private platformAccountReporitory: SteamAccountSequelizeRepository,
     private logger: PinoLoggerAdapter
   ) {}
 
@@ -166,17 +166,17 @@ export class SteamGamePlatformRepository
       ...new Set(
         (
           await Promise.all(
-            referenceGames.map(async (game, index: number) => {
+            referenceGames.flatMap(async (game, index: number) => {
               await this.delay(333 * index); // 3 requests per second
               const steamCategoriesIds = await this.getGameSteamCategoriesIds(
                 game.getPlatformGameId()
               );
-              return steamCategoriesIds;
+              return steamCategoriesIds.flat();
             })
           )
         ).flat()
       ),
-    ].map((categoryStr) => JSON.parse(categoryStr));
+    ];
 
     const allowedGames = shuffle(
       await this.requestAllowedGames(
@@ -206,23 +206,34 @@ export class SteamGamePlatformRepository
   }
 
   async getMysteryBoxRollOption(
+    mysteryBox: MysteryBox,
     games: GameProviderGame[],
     matchedWithReferenceGames: GameProviderGame[],
     euroAmount: number
   ): Promise<MysteryBoxRoll> {
     // If the amount of games that match with the reference games is less than the 40% of the total amount of games requested
     // get the 20 games at least without matching with the reference games
-    const minimumGames = 20;
+    const minimumGames = 40;
     const minimumPercentage = 40;
     const requiredGamesCount = Math.max(
       minimumGames,
       Math.ceil(games.length * (minimumPercentage / 100))
     );
 
-    const finalGames =
-      matchedWithReferenceGames.length >= requiredGamesCount
-        ? matchedWithReferenceGames.slice(0, requiredGamesCount)
-        : games.slice(0, requiredGamesCount);
+    let finalGames = matchedWithReferenceGames.slice();
+
+    // If the amount of games that match with the reference games is less than the 40% of the total amount of games requested
+    if (finalGames.length < requiredGamesCount) {
+      // Get the games that don't match with the reference games
+      const additionalGames = games.filter(
+        (game) =>
+          !finalGames.some((finalGame) => finalGame.getId() === game.getId())
+      );
+      // Concat the games that don't match with the reference games to the final games
+      finalGames = finalGames.concat(
+        additionalGames.slice(0, requiredGamesCount - finalGames.length)
+      );
+    }
 
     const mysteryBoxRollId = Uuid.create();
 
@@ -232,51 +243,52 @@ export class SteamGamePlatformRepository
     const gamePrice = randomGame.getGamePlatformPrice() ?? 0;
 
     const gameProviderGames = [
+
       new GameProviderGame(
-        Uuid.create(),
-        mysteryBoxRollId,
-        randomGame.getName(),
-        gamePrice,
-        null,
-        null,
-        null,
-        null
+        Uuid.create(), // id
+        mysteryBoxRollId, // mysteryBoxRollId
+        randomGame.getName(), // name
+        randomGame.getImgUrl(), // imgUrl
+        randomGame.getRegion(), // region
+        randomGame.getPlatform(), // platform
+        randomGame.getExternalData(), // externalData
+        gamePrice, // gamePlatformPrice
+        randomGame.getCategories() // categories
       ),
+
     ];
-    // If the price of the game is less than the min of the euro amount, get a second game
-    if (
-      gamePrice <
-      euroAmount * Number(process.env.MIN_AMOUNT_PERCENTAGE_FOR_1_GAME)
-    ) {
-      const secondRandomGame = finalGames.find(
-        (game) =>
-          game.gameData.id !== randomGame.gameData.id &&
-          game.gameData.price <= euroAmount - gamePrice
+
+    // Try to get a second game
+    const secondRandomGame = finalGames.find(
+      (game) =>
+        game.getId() !== randomGame.getId() &&
+        (game.getGamePlatformPrice() ?? 0) <= euroAmount - gamePrice &&
+        (game.getGamePlatformPrice() ?? 0) >= (euroAmount - gamePrice) * 0.93 // 93% of the remaining amount
+    );
+    if (secondRandomGame) {
+      gameProviderGames.push(
+        new GameProviderGame(
+          Uuid.create(), // id
+          mysteryBoxRollId, // mysteryBoxRollId
+          secondRandomGame.getName(), // name
+          secondRandomGame.getImgUrl(), // imgUrl
+          secondRandomGame.getRegion(), // region
+          secondRandomGame.getPlatform(), // platform
+          secondRandomGame.getExternalData(), // externalData
+          secondRandomGame.getGamePlatformPrice(), // gamePlatformPrice
+          secondRandomGame.getCategories() // categories
+        )
       );
-      if (secondRandomGame) {
-        gameProviderGames.push(
-          new GameProviderGame(
-            Uuid.create(),
-            mysteryBoxRollId,
-            secondRandomGame.gameData.name,
-            secondRandomGame.gameData.price,
-            null,
-            null,
-            null,
-            null
-          )
-        );
-      }
     }
 
     return new MysteryBoxRoll(
-      mysteryBoxRollId,
-      mysteryBox.getId(),
-      false,
-      false,
-      false,
-      null,
-      gameProviderGames
+      mysteryBoxRollId, // id
+      mysteryBox.getId(), // mysteryBoxId
+      false, // viewed
+      false, // rejected
+      false, // selected
+      null, // optionNumber
+      gameProviderGames // gameProviderGames
     );
   }
 
@@ -286,7 +298,7 @@ export class SteamGamePlatformRepository
     steamGameId: number
   ): Promise<string[]> {
     return await axios
-      .get(`${process.env.STEAM_API_URL}/api/appdetails`, {
+      .get(`${process.env.STEAM_API_WEB_URL}/api/appdetails`, {
         params: {
           appids: steamGameId,
         },
@@ -300,7 +312,9 @@ export class SteamGamePlatformRepository
         });
         if (response.status === 200) {
           return Object.values(response.data).map((gameData: any) =>
-            gameData.categories.map((category: any) => category.id)
+            gameData.data.categories.map(
+              (category: any) => category.id
+            )
           );
         } else {
           this.logger.log("unexpected status code", {
@@ -343,9 +357,11 @@ export class SteamGamePlatformRepository
     let start = 0;
     let items: any[] = [];
 
+    const categoryExternalIds = categories?.map((category) => category.getExternalId()) ?? [];
+
     // Request games until the items array has the maxGamesToRequest length
     while (items.length < maxGamesToRequest) {
-      const query = JSON.stringify({
+      const query = {
         query: {
           start: start.toString(),
           count: (maxGamesToRequest - items.length).toString(),
@@ -355,55 +371,57 @@ export class SteamGamePlatformRepository
             released_only: true,
             price_filters: { exclude_free_items: true },
             type_filters: {
-              include_apps: false,
-              include_packages: false,
-              include_bundles: false,
+              include_apps: "",
+              include_packages: "",
+              include_bundles: "",
               include_games: true,
-              include_demos: false,
-              include_mods: false,
-              include_dlc: false,
-              include_software: false,
-              include_video: false,
-              include_hardware: false,
-              include_series: false,
-              include_music: false,
+              include_demos: "",
+              include_mods: "",
+              include_dlc: "",
+              include_software: "",
+              include_video: "",
+              include_hardware: "",
+              include_series: "",
+              include_music: "",
             },
             tagids_must_match: [
               {
-                tagids: categories?.map((category) => category.getExternalId()),
+                tagids: categoryExternalIds,
               },
             ],
           },
         },
         context: {
-          country_code: region ?? "ES",
+          country_code: region || "ES",
         },
         data_request: {
-          include_assets: false,
+          include_assets: "",
           include_release: true,
-          include_platforms: false,
-          include_all_purchase_options: false,
-          include_screenshots: false,
-          include_trailers: false,
-          include_ratings: false,
-          include_tag_count: "10", // Get the first 10 tags
+          include_platforms: "",
+          include_all_purchase_options: "",
+          include_screenshots: "",
+          include_trailers: "",
+          include_ratings: "",
+          include_tag_count: "20",
           include_reviews: true,
-          include_basic_info: false,
-          include_supported_languages: false,
-          include_full_description: false,
-          include_included_items: false,
-          include_assets_without_overrides: false,
-          apply_user_filters: false,
-          include_links: false,
+          include_basic_info: "",
+          include_supported_languages: "",
+          include_full_description: "",
+          include_included_items: "",
+          include_assets_without_overrides: "",
+          apply_user_filters: "",
+          include_links: "",
         },
-      });
+      };
+      const formattedQuery = JSON.stringify(query);
+
 
       const response = await axios.get(
         `${process.env.STEAM_API_URL}/IStoreQueryService/Query/v1`,
         {
           params: {
             key: process.env.STEAM_API_KEY,
-            query: query,
+            input_json: formattedQuery,
           },
         }
       );
@@ -415,36 +433,43 @@ export class SteamGamePlatformRepository
         },
       });
 
-      if (response.status === 200) {
+      if (response.status === 200 && response.data?.response?.store_items) {
+
+        const storeItems = response.data.response.store_items;
         // Filter the steam response to get only the games that match the criteria
-        const newItems = response.data.store_items.filter((item: any) => {
+        const newItems = storeItems.filter((item: any) => {
           // A valid name is only composed by letters and spaces and doesn't end with a number
           const itemName = item.name;
           const isValidName =
             /^[a-zA-Z\s]+$/.test(itemName) && !/\s\d$/.test(itemName);
 
           // Check if the price is valid
-          const price = item.best_purchase_option.original_price_in_cents / 100;
+          const price = Number(item.best_purchase_option.final_price_in_cents) / 100;
 
           const amountToGet2Games = Number(process.env.AMOUNT_TO_GET_2_GAMES);
 
           const isPriceValid =
             price <= euroAmount &&
-            ((euroAmount < amountToGet2Games &&
+            (
+              (euroAmount < amountToGet2Games &&
               price >=
                 (Number(process.env.MIN_AMOUNT_PERCENTAGE_FOR_1_GAME) / 100) *
                   euroAmount) ||
               (euroAmount >= amountToGet2Games &&
                 price >=
                   (Number(process.env.MIN_AMOUNT_PERCENTAGE_FOR_1_GAME) / 100) *
-                    euroAmount));
+                    euroAmount) ||
+              (price >=
+                  ((100 - Number(process.env.MAX_AMOUNT_PERCENTAGE_FOR_SECOND_GAME)) / 100) *
+                    euroAmount)
+            );
 
           // More than 100 reviews and at least 80% of the reviews are positive
           const reviewData = item.reviews.summary_filtered ?? null;
           const hasValidValorations =
             (reviewData?.review_count ?? 0) > 100 &&
             reviewData?.review_score >= 7;
-          const alreadyHasGame = accountGameIds.includes(item.id);
+          const alreadyHasGame = accountGameIds.includes(item.appid);
 
           // Games from the last 8 years
           const releases = item.release;
@@ -459,11 +484,16 @@ export class SteamGamePlatformRepository
             new Date().getFullYear() -
               Number(process.env.MAX_GAME_RELEASE_YEARS_AGO);
 
+            const hasAtLeastOneCategory = item.tagids?.some((tagId: Number) =>
+              categoryExternalIds.includes(tagId)
+            );
+
           return (
             isValidName &&
             isPriceValid &&
             hasValidValorations &&
             validReleaseDate &&
+            hasAtLeastOneCategory &&
             !alreadyHasGame
           );
         });
@@ -481,7 +511,7 @@ export class SteamGamePlatformRepository
                 null, // region
                 null, // platform
                 null, // externalData
-                item.best_purchase_option.original_price_in_cents / 100, // gamePlatformPrice
+                Number(item.best_purchase_option.final_price_in_cents) / 100, // gamePlatformPrice
                 await this.categoryRepository.getByIds(
                   item.tagids ?? []
                 ) // categories
@@ -492,8 +522,8 @@ export class SteamGamePlatformRepository
 
         // If the total of items requested is greater than the total of items available, break the loop
         const totalMatchingRecords =
-          response.data.metadata.total_matching_records;
-        if (start + newItems.length >= totalMatchingRecords) break;
+          response.data.response.metadata.total_matching_records;
+        if (start + storeItems.length >= totalMatchingRecords) break;
 
         start += newItems.length;
       } else {
@@ -510,7 +540,7 @@ export class SteamGamePlatformRepository
   }
 
   private async requestAccountGameIds(userId: Uuid): Promise<number[]> {
-    const account = await this.steamAccountRepository.getByUserId(userId);
+    const account = await this.platformAccountReporitory.getByUserId(userId);
     if (!account) {
       return [];
     }
