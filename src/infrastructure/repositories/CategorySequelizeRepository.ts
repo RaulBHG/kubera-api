@@ -86,22 +86,4 @@ export class CategorySequelizeRepository implements CategoryRepositoryContract {
         )
     );
   }
-
-  async save(category: Category): Promise<Category> {
-    const createdCategory = await CategoryModel.create({
-      id: Uuid.create().getValue(),
-      slug: category.getSlug(),
-      name: category.getName(),
-      external_id: category.getExternalId(),
-      visible: category.isVisible(),
-    });
-
-    return new Category(
-      createdCategory.id,
-      createdCategory.slug,
-      createdCategory.name,
-      createdCategory.external_id,
-      createdCategory.visible
-    );
-  }
 }
