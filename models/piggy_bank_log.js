@@ -1,7 +1,9 @@
-"use strict";
-const { Model } = require("sequelize");
+'use strict';
+const {
+  Model
+} = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class category extends Model {
+  class piggy_bank_log extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -11,21 +13,20 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  category.init(
+  piggy_bank_log.init(
     {
-      slug: DataTypes.STRING,
-      name: DataTypes.STRING,
-      external_id: DataTypes.STRING,
-      visible: DataTypes.BOOLEAN,
+      transaction_id: DataTypes.STRING,
+      mystery_box: DataTypes.STRING,
+      total_euro_ammount: DataTypes.FLOAT,
     },
     {
       sequelize,
-      modelName: "category",
+      modelName: "piggy_bank_log",
       underscored: true,
       timestamps: true,
       createdAt: "created_at",
       updatedAt: "updated_at",
     }
   );
-  return category;
+  return piggy_bank_log;
 };

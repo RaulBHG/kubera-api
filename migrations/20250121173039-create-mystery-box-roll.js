@@ -2,49 +2,54 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("steam_account_reference_games", {
+    await queryInterface.createTable("mystery_box_rolls", {
       id: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.DataTypes.UUID,
         defaultValue: Sequelize.DataTypes.UUIDV4,
       },
-      steam_account_id: {
+      mystery_box_id: {
         type: Sequelize.DataTypes.UUID,
-        allowNull: false,
+        allowNull: true,
         references: {
-          model: "steam_accounts", // Table name of the related model
+          model: "mystery_boxes", // Table name of the related model
           key: "id",
         },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+        onUpdate: "SET NULL",
+        onDelete: "SET NULL",
       },
-      steam_game_id: {
-        type: Sequelize.INTEGER,
+      viewed: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
       },
-      name: {
-        type: Sequelize.STRING,
+      rejected: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
       },
-      playtime_2_weeks: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
+      selected: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
       },
-      playtime_forever: {
+      option_number: {
         type: Sequelize.INTEGER,
       },
       created_at: {
         allowNull: false,
-        type: 'TIMESTAMP',
+        type: "TIMESTAMP",
         defaultValue: Sequelize.NOW,
       },
       updated_at: {
         allowNull: false,
-        type: 'TIMESTAMP',
+        type: "TIMESTAMP",
         defaultValue: Sequelize.NOW,
       },
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('steam_account_reference_games');
+    await queryInterface.dropTable('mystery_box_rolls');
   }
 };

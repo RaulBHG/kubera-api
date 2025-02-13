@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "user_id",
         as: "user",
       });
+      steam_account.hasMany(models.steam_account_reference_game, {
+        foreignKey: "steam_account_id",
+        as: "steam_account_reference_games",
+      });
     }
   }
   steam_account.init(
@@ -26,6 +30,9 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "steam_account",
       underscored: true,
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     }
   );
   return steam_account;

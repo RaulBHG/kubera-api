@@ -6,11 +6,12 @@
   "scripts": {
     "test": "jest --passWithNoTests --coverage",
     "dev": "npx ts-node ./app.ts",
-    "command": "npx ts-node ./src/infrastructure/commands/$npm_config_name.ts"
+    "command": "npx ts-node ./src/infrastructure/commands/%npm_config_name%.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "awilix": "^12.0.4",
     "axios": "^1.7.9",
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.5",

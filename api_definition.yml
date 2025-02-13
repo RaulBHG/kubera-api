@@ -79,6 +79,36 @@ components:
         visible:
           type: boolean
           example: true
+    reroll_option:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Uuid of reroll_option
+        reroll_option:
+          type: integer
+          example: 1
+        rejected: 
+          type: boolean
+          example: false
+        games:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Uuid of reroll_option_game
+              name:
+                type: string
+              region:
+                type: string
+                nullable: true
+              img_url:
+                type: string
+                nullable: true
+              platform:
+                $ref: '#/components/schemas/platform'
 paths:
   '/api/mystery-box/category':
     get:
@@ -152,44 +182,41 @@ paths:
           $ref: '#/components/responses/NotValidUrl'
         '400':
           $ref: '#/components/responses/InternalServerError'
-  '/api/mystery-box/user/{user_id}/search-matches':
+  '/api/mystery-box/user/{userId}/search-matches':
     get:
       description: Busca 2 juegos que estén bien valorados en steam, que haya una key por menos de lo que valen en kinguin y los almacenamos en 2 registros en bbdd asociados a el id del usuario que hemos almacenado en el registro anterior (junto con los datos del usuario habremos solicitado el email, esto va junto con el pago, que está para desarrollar más adelante). Esto verifica de la bbdd de hucha el dinero acumulado y hace un ramdom en caso de que haya suficiente para darle una recompensa. <br> Hay que <b>validar</b> desde back que la información de compra permite realizar esta búsqueda, que no se ha realizado ya y que la opción solicita existe y que no ha sido retornada con anterioridad.
       parameters:
         - $ref: '#/components/parameters/AcceptHeader'
         - in: path
-          name: user_id
+          name: userId
           required: true
           schema:
             type: string
           description: El id del usuario en nuestro sistema.
         - in: query
-          required: true
           name: categories
           schema:
             type: string
             example: 12,32,56,78
           description: Una lista separada por comas de los identificadores de las categorías seleccionadas
         - in: query
-          required: true
           name: country_code
           schema:
             type: string
             example: ES
         - in: query
-          required: true
           name: platforms
           schema:
             type: string
             example: 12,32,56,78
           description: Una lista separada por comas de los identificadores de las plataformas seleccionadas
         - in: query
-          name: rerol_option
+          name: reroll_option
           required: false
           schema:
             type: integer
             default: 1
-          description: Límit 2
+          description: Límit 3
         - in: query
           name: datos_necesarios_asociados_al_pago
           required: false
@@ -207,13 +234,15 @@ paths:
                   success:
                     example: true
                     type: boolean
+                  data:
+                    $ref: '#/components/schemas/reroll_option'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '422':
           $ref: '#/components/responses/NotValidUrl'
         '400':
           $ref: '#/components/responses/InternalServerError'
-  '/api/mystery-box/search-matchs/rerol-option/{option_id}':
+  '/api/mystery-box/search-matchs/reroll-option/{option_id}':
     post:
       description: Esto hay que lanzarlo y tiene que quedar escuchando el front con un websocket. Al devolver opción tiene que marcarla en bbdd como la correcta y marcar la búsqueda como utilizada y mandar un mail con la key y mostrarla con el websocket
       parameters:

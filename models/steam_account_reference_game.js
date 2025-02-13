@@ -28,6 +28,9 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "steam_account_reference_game",
       underscored: true,
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     }
   );
   return steam_account_reference_game;

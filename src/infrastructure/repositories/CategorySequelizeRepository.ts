@@ -19,6 +19,39 @@ export class CategorySequelizeRepository implements CategoryRepositoryContract {
     );
   }
 
+  async getById(id: string): Promise<Category | null> {
+    const category = await CategoryModel.findByPk(id);
+    if (!category) {
+      return null;
+    }
+
+    return new Category(
+      category.id,
+      category.slug,
+      category.name,
+      category.external_id,
+      category.visible
+    );
+  }
+
+  async getByIds(ids: string[]): Promise<Category[]> {
+    const categories = await CategoryModel.findAll({
+      where: {
+        id: ids,
+      },
+    });
+    return categories.map(
+      (category: typeof CategoryModel) =>
+        new Category(
+          category.id,
+          category.slug,
+          category.name,
+          category.external_id,
+          category.visible
+        )
+    );
+  }
+
   async getAllVisible(): Promise<Category[]> {
     const categories = await CategoryModel.findAll({
       where: {

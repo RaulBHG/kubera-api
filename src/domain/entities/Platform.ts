@@ -11,7 +11,7 @@ export class Platform {
     return this.id;
   }
 
-  getSlug(): string | null {
+  getSlug(): string {
     return this.slug;
   }
 
