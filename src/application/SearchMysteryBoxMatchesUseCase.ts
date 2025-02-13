@@ -112,7 +112,7 @@ export class SearchMysteryBoxMatchesUseCase {
       );
 
     // TODO: AMOUNT NOT HARDCODED
-    const euroAmount = 30 * (mysteryBox.getType()?.getMultiplier() ?? 1); // Get the price of the mystery box
+    const euroAmount = 60 * (mysteryBox.getType()?.getMultiplier() ?? 1); // Get the price of the mystery box
 
     const games =
       await this.externalGamePlatformRepository.getAvailableGameProviderGames(

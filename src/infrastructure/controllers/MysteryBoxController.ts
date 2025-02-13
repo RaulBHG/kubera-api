@@ -47,7 +47,6 @@ export class MysteryBoxController extends Controller {
       const platformArray = platforms.split(",").map((id: string) => id);
       const rerollOption = req.body.reroll_option as number ?? 1;
 
-      //! Get From request
       const matches = await this.searchMysteryBoxMatchesUseCase.searchMatches(
         userId, // user_id
         rerollOption, // reroll option

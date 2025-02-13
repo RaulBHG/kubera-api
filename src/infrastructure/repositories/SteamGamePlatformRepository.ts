@@ -296,30 +296,6 @@ export class SteamGamePlatformRepository
 
       totalPrice += gamePrice;
       
-
-      // Try to get a second game
-      /*const secondRandomGame = finalGames.find(
-        (game) =>
-          game.getId() !== randomGame.getId() &&
-          (game.getGamePlatformPrice() ?? 0) <= euroAmount - gamePrice &&
-          (game.getGamePlatformPrice() ?? 0) >=
-            (euroAmount - gamePrice) * (Number(process.env.MIN_AMOUNT_PERCENTAGE ?? 93) / 100) // 93% of the remaining amount
-      );
-      if (secondRandomGame) {
-        gameProviderGames.push(
-          new GameProviderGame(
-            Uuid.create(), // id
-            mysteryBoxRollId, // mysteryBoxRollId
-            secondRandomGame.getName(), // name
-            secondRandomGame.getImgUrl(), // imgUrl
-            secondRandomGame.getRegion(), // region
-            secondRandomGame.getPlatform(), // platform
-            secondRandomGame.getExternalData(), // externalData
-            secondRandomGame.getGamePlatformPrice(), // gamePlatformPrice
-            secondRandomGame.getCategories() // categories
-          )
-        );
-      }*/
     }
 
     return new MysteryBoxRoll(
@@ -536,6 +512,7 @@ export class SteamGamePlatformRepository
               Number(process.env.MIN_GAME_REVIEWS ?? 700) &&
             reviewData?.review_score >=
               Number(process.env.STEAM_MIN_REVIEW_SCORE ?? 7);
+
           const alreadyHasGame = accountGameIds.includes(item.appid);
 
           // Games from the last 8 years
