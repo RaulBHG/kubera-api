@@ -1,6 +1,6 @@
 import { WebSocketRouter } from "../router";
-import txnsHandlers from "./transaction";
+import txnRoutes from "./txns";
 
 export function setupWebSocketRoutes(router: WebSocketRouter): void {
-  router.addRoute(txnsHandlers);
+  router.addRoute(txnRoutes);
 }

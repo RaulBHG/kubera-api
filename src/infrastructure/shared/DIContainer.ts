@@ -1,4 +1,5 @@
 import { SearchMysteryBoxMatchesUseCase } from "../../application/SearchMysteryBoxMatchesUseCase";
+import { MockedTxnService } from "../../application/services/MockedTxnService";
 import { PinoLoggerAdapter } from "../adapters/log/PinoLoggerAdapter";
 import { MysteryBoxController } from "../controllers/MysteryBoxController";
 import { CategorySequelizeRepository } from "../repositories/CategorySequelizeRepository";
@@ -10,6 +11,7 @@ import { SteamAccountReferenceGamesSequelizeRepository } from "../repositories/S
 import { SteamAccountSequelizeRepository } from "../repositories/SteamAccountSequelizeRepository";
 import { SteamGamePlatformRepository } from "../repositories/SteamGamePlatformRepository";
 import { UserSequelizeRepository } from "../repositories/UserSequelizeRepository";
+import { WebSocketServer } from "./websocket/server";
 
 const { asClass, asValue, createContainer } = require("awilix");
 
@@ -18,6 +20,10 @@ const DIContainer = createContainer({
 });
 
 DIContainer.register({
+  // ---------------- SINGLETONES ----------------
+  webSocketServer: asClass(WebSocketServer).singleton().scoped(),
+  mockedTxnService: asClass(MockedTxnService).singleton().scoped(),
+
   // ---------------- REPOSITORIES ----------------
   logger: asClass(PinoLoggerAdapter).scoped(),
   userRepository: asClass(UserSequelizeRepository).scoped(),

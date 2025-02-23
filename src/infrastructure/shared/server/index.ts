@@ -1,24 +1,35 @@
 import express, { Express } from "express";
 import { createServer, Server } from "http";
-import { container } from "../websocket/container";
 import { WebSocketServer } from "../websocket/server";
+import { AwilixContainer } from "awilix";
 
-class ServerInstance {
+export class ServerInstance {
   private static instance: ServerInstance;
   private app: Express;
   private server: Server;
   private wsServer: WebSocketServer;
+  private diContainer: AwilixContainer;
 
-  private constructor() {
+  private constructor(container: AwilixContainer) {
+    this.diContainer = container;
     this.app = express();
     this.server = createServer(this.app);
-    this.wsServer = container.get<WebSocketServer>(WebSocketServer);
+    this.wsServer = this.diContainer.resolve("webSocketServer");
     this.wsServer.initialize(this.server);
+  }
+
+  public static initialize(container: AwilixContainer): ServerInstance {
+    if (!ServerInstance.instance) {
+      ServerInstance.instance = new ServerInstance(container);
+    }
+    return ServerInstance.instance;
   }
 
   public static getInstance(): ServerInstance {
     if (!ServerInstance.instance) {
-      ServerInstance.instance = new ServerInstance();
+      throw new Error(
+        "ServerInstance has not been initialized. Call initialize() first."
+      );
     }
     return ServerInstance.instance;
   }
@@ -35,11 +46,13 @@ class ServerInstance {
     return this.wsServer;
   }
 
+  getDiContainer(): AwilixContainer {
+    return this.diContainer;
+  }
+
   startServer(port: number): void {
     this.server.listen(port, () => {
       console.log(`[server]: Server is running at http://localhost:${port}`);
     });
   }
 }
-
-export const serverInstance = ServerInstance.getInstance();

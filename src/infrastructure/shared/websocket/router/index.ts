@@ -1,9 +1,9 @@
-import { WebSocketHandler, WebSocketRoute } from "./types";
+import { WebSocketHandler, WebSocketRouteNamespace } from "./types";
 
 export class WebSocketRouter {
   private routes: Map<string, WebSocketHandler[]> = new Map();
 
-  public addRoute(route: WebSocketRoute): void {
+  public addRoute(route: WebSocketRouteNamespace): void {
     this.routes.set(route.namespace, route.handlers);
   }
 

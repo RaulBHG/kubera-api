@@ -27,7 +27,7 @@ export class CategorySteamRepository
           "",
           item.name.toLowerCase().replace(" ", "-"),
           item.name,
-          item.tagid,
+          Number(item.tagid),
           false
         );
       });

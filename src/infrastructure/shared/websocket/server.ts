@@ -1,11 +1,8 @@
 import { WebSocket, WebSocketServer as WS } from "ws";
 import { Server } from "http";
-import { injectable } from "inversify";
 import { WebSocketRouter } from "./router";
-import { setupWebSocketRoutes } from "./routes";
 import { WebSocketMessage } from "./types";
 
-@injectable()
 export class WebSocketServer {
   private wss: WS | null = null;
   private connections: Map<string, WebSocket> = new Map();
@@ -15,7 +12,6 @@ export class WebSocketServer {
 
   constructor() {
     this.router = new WebSocketRouter();
-    setupWebSocketRoutes(this.router);
   }
 
   private handleMessage(connectionId: string, message: string): void {
@@ -42,6 +38,10 @@ export class WebSocketServer {
     }
   }
 
+  getRouter(): WebSocketRouter {
+    return this.router;
+  }
+
   initialize(server: Server): void {
     this.wss = new WS({ server });
 
@@ -59,44 +59,7 @@ export class WebSocketServer {
     });
   }
 
-  private handleTxn(connectionId: string, payload: any): void {
-    console.log(`Client ${connectionId} subscribed to:`, payload);
-  }
-
-  public async sendWithResponse(message: WebSocketMessage): Promise<any> {
-    const transaction_id = crypto.randomUUID();
-    const messageWithTransaction = {
-      ...message,
-      transaction_id,
-    };
-
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.transactionHandlers.delete(transaction_id);
-        reject(new Error("Transaction timeout"));
-      }, this.TRANSACTION_TIMEOUT);
-
-      this.transactionHandlers.set(transaction_id, {
-        resolve,
-        reject,
-        timeout,
-      });
-      this.broadcast(messageWithTransaction);
-    });
-  }
-
-  public broadcast(message: WebSocketMessage): void {
-    this.connections.forEach((ws) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify(message));
-      }
-    });
-  }
-
-  public sendToClient(connectionId: string, message: WebSocketMessage): void {
-    const ws = this.connections.get(connectionId);
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(message));
-    }
+  getConnectionById(connectionId: string): WebSocket | undefined {
+    return this.connections.get(connectionId);
   }
 }

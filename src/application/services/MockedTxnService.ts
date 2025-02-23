@@ -1,43 +1,39 @@
-import { WebSocketServer } from "../../infrastructure/websocket/server";
-import {
-  TransactionStatus,
-  WebSocketMessage,
-} from "../../infrastructure/websocket/types";
-import { serverInstance } from "../../infrastructure/server/index";
+import { WebSocketServer } from "../../infrastructure/shared/websocket/server";
+import { TransactionStatus } from "../../infrastructure/shared/websocket/types";
 import { LoggerContract } from "../../domain/contracts/LoggerContract";
-import { PinoLoggerAdapter } from "../../infrastructure/adapters/log/PinoLoggerAdapter";
+import { WebsocketConnectionPublisher } from "../../infrastructure/publishers/websocket/WebsocketConnectionPublisher";
+import { MockedTxnServiceContract } from "../../domain/contracts/MockedTxnServiceContract";
 
-class MockedTxnService {
-  private static instance: MockedTxnService;
+export class MockedTxnService implements MockedTxnServiceContract {
   private transactions: Map<string, TransactionStatus> = new Map();
-  private connectionMap: Map<string, string> = new Map(); // Maps txnId to connectionId
+  private connectionMap: Map<string, string> = new Map();
   private wsServer: WebSocketServer;
   private logger: LoggerContract;
 
-  private constructor(wsServer: WebSocketServer) {
-    this.wsServer = wsServer;
-    this.logger = new PinoLoggerAdapter();
+  constructor({
+    webSocketServer,
+    logger,
+  }: {
+    webSocketServer: WebSocketServer;
+    logger: LoggerContract;
+  }) {
+    this.wsServer = webSocketServer;
+    this.logger = logger;
   }
 
-  public static getInstance(wsServer: WebSocketServer): MockedTxnService {
-    if (!MockedTxnService.instance) {
-      MockedTxnService.instance = new MockedTxnService(wsServer);
-    }
-    return MockedTxnService.instance;
-  }
-
-  public async processTransaction(
+  public async store(
     wsConnectionId: string,
-    payload: any
+    data: {
+      [key: string]: any;
+    }
   ): Promise<string> {
+    // TODO: Implementar la lógica de almacenamiento de la transacción
     const txnId = `txn-${Date.now()}-${Math.random()
       .toString(36)
       .substring(2, 6)}`;
 
-    // asociar Txn con Websocket connection
     this.connectionMap.set(txnId, wsConnectionId);
 
-    // actualizar a un estasdo inicial "processing"
     const processingStatus: TransactionStatus = {
       transaction_id: txnId,
       status: "processing",
@@ -47,26 +43,27 @@ class MockedTxnService {
 
     this.transactions.set(txnId, processingStatus);
 
-    // enviar el estado inicial al cliente
-    this.wsServer.sendToClient(wsConnectionId, {
-      namespace: "txns",
-      type: "status_update",
-      payload: processingStatus,
-    });
+    // const wsPublisher = new WebsocketConnectionPublisher(this.wsServer);
+    // const wsPublished = wsPublisher.toConnectionId(wsConnectionId, {
+    //   namespace: "txns",
+    //   type: "status_update",
+    //   payload: processingStatus,
+    // });
 
-    this.logger.log("Transaction initiated", {
+    this.logger.log("New txn detected", {
       context: "MockedTxnService",
       attributes: {
+        // wsPublished,
         txnId,
-        payload,
+        payload: data,
+        processingStatus,
       },
     });
 
     return txnId;
   }
 
-  // se actualiza cuando el proveedor de pago confirme o no
-  public async updateTransactionStatus(
+  public async updateStatusByTxnId(
     txnId: string,
     status: TransactionStatus["status"]
   ): Promise<void> {
@@ -86,26 +83,24 @@ class MockedTxnService {
 
     this.transactions.set(txnId, finalStatus);
 
-    // enviar el estado final al cliente
-    this.wsServer.sendToClient(connectionId, {
+    const wsPublisher = new WebsocketConnectionPublisher(this.wsServer);
+    const wsPublished = wsPublisher.toConnectionId(connectionId, {
       namespace: "txns",
       type: "status_update",
       payload: finalStatus,
     });
 
-    this.logger.log("Transaction status updated", {
+    this.logger.log("Txn update detected", {
       context: "MockedTxnService",
       attributes: {
+        wsPublished,
         txnId,
         status,
       },
     });
   }
 
-  public getTransactionStatus(txnId: string): TransactionStatus | undefined {
+  public getStatusByTxnId(txnId: string): TransactionStatus | undefined {
     return this.transactions.get(txnId);
   }
 }
-
-export const mockedTxnService = () =>
-  MockedTxnService.getInstance(serverInstance.getWebSocketServer());

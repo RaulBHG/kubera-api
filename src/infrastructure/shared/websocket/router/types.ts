@@ -3,7 +3,7 @@ export interface WebSocketHandler {
   handler: (connectionId: string, payload: any) => void | Promise<void>;
 }
 
-export interface WebSocketRoute {
+export interface WebSocketRouteNamespace {
   namespace: string;
   handlers: WebSocketHandler[];
 }

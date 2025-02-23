@@ -146,11 +146,7 @@
     </div>
 
     <div class="buttons-container">
-      <button
-        id="initiateBtn"
-        class="button test-payment-btn"
-        onclick="initiateTransaction()"
-      >
+      <button id="newTxnBtn" class="button test-payment-btn">
         <span class="button-text">Get mystery box</span>
         <span class="spinner"></span>
       </button>
@@ -158,9 +154,11 @@
 
     <div id="messageBox" class="message-box"></div>
 
-    <script>
-      let ws = null;
+    <script type="module">
+      import WebSocketClient from "./ws-route-client.js";
+
       const SERVER_URL = "ws://localhost:3000";
+      const wsClient = new WebSocketClient(SERVER_URL);
 
       function logMessage(message, type = "normal") {
         const messageBox = document.getElementById("messageBox");
@@ -171,84 +169,24 @@
         messageBox.scrollTop = messageBox.scrollHeight;
       }
 
-      function updateButton(enabled = true, isLoading = false) {
-        const btn = document.getElementById("initiateBtn");
-        btn.disabled = !enabled;
-        btn.classList.toggle("loading", isLoading);
-      }
-
-      function connectWebSocket() {
-        ws = new WebSocket(SERVER_URL);
-
-        ws.onopen = () => {
-          logMessage("Connected to WebSocket server", "success");
-          updateButton(true, false);
-        };
-
-        ws.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            logMessage(
-              `Received: ${JSON.stringify(data, null, 2)}`,
-              "received"
-            );
-
-            if (data.namespace === "txns" && data.type === "status_update") {
-              const status = data.payload.status;
-              if (status === "completed") {
-                updateButton(true, false);
-              }
-            }
-          } catch (e) {
-            logMessage(`Error parsing message: ${e.message}`, "error");
-          }
-        };
-
-        ws.onerror = (error) => {
-          logMessage(`WebSocket error: ${error.message}`, "error");
-          updateButton(true, false);
-        };
-
-        ws.onclose = () => {
-          logMessage("WebSocket connection closed", "error");
-          updateButton(true, false);
-        };
-      }
-
       function updateBudgetValue(value) {
         document.getElementById("budgetValue").textContent = value;
       }
 
-      function initiateTransaction() {
-        if (!ws || ws.readyState !== WebSocket.OPEN) {
-          connectWebSocket();
-          return;
-        }
-
-        updateButton(false, true);
-
+      function txnStore() {
         const budget = document.getElementById("budget").value;
         const steamUser = document.getElementById("steamUser").value;
 
-        const message = {
-          namespace: "txns",
-          type: "initiate",
-          payload: {
-            amount: budget,
-            currency: "USD",
-            steamUser: steamUser,
-            timestamp: Date.now(),
-          },
-        };
-
-        ws.send(JSON.stringify(message));
+        wsClient.store(budget, steamUser);
         logMessage(
-          `Initiated transaction: ${JSON.stringify(message, null, 2)}`,
+          `New txn: Budget ${budget}, Steam User ${steamUser}`,
           "success"
         );
       }
 
-      connectWebSocket();
+      document.getElementById("newTxnBtn").addEventListener("click", () => {
+        txnStore();
+      });
     </script>
   </body>
 </html>
