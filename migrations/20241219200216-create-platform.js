@@ -28,13 +28,13 @@ module.exports = {
       },
       created_at: {
         allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        type: 'TIMESTAMP',
+        defaultValue: Sequelize.NOW,
       },
       updated_at: {
         allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        type: 'TIMESTAMP',
+        defaultValue: Sequelize.NOW,
       },
     });
   },

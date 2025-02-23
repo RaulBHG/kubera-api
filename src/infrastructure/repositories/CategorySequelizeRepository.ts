@@ -19,6 +19,39 @@ export class CategorySequelizeRepository implements CategoryRepositoryContract {
     );
   }
 
+  async getById(id: string): Promise<Category | null> {
+    const category = await CategoryModel.findByPk(id);
+    if (!category) {
+      return null;
+    }
+
+    return new Category(
+      category.id,
+      category.slug,
+      category.name,
+      category.external_id,
+      category.visible
+    );
+  }
+
+  async getByIds(ids: string[]): Promise<Category[]> {
+    const categories = await CategoryModel.findAll({
+      where: {
+        id: ids,
+      },
+    });
+    return categories.map(
+      (category: typeof CategoryModel) =>
+        new Category(
+          category.id,
+          category.slug,
+          category.name,
+          category.external_id,
+          category.visible
+        )
+    );
+  }
+
   async getAllVisible(): Promise<Category[]> {
     const categories = await CategoryModel.findAll({
       where: {
@@ -84,24 +117,6 @@ export class CategorySequelizeRepository implements CategoryRepositoryContract {
           category.external_id,
           category.visible
         )
-    );
-  }
-
-  async save(category: Category): Promise<Category> {
-    const createdCategory = await CategoryModel.create({
-      id: Uuid.create().getValue(),
-      slug: category.getSlug(),
-      name: category.getName(),
-      external_id: category.getExternalId(),
-      visible: category.isVisible(),
-    });
-
-    return new Category(
-      createdCategory.id,
-      createdCategory.slug,
-      createdCategory.name,
-      createdCategory.external_id,
-      createdCategory.visible
     );
   }
 }

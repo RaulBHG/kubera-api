@@ -1,8 +1,11 @@
-import { GamePlatformAccountGamesRepositoryContract } from "../../domain/contracts/GamePlatform/GamePlatformAccountGamesRepositoryContract";
+import { GamePlatformAccountGamesRepositoryContract } from "../../domain/contracts/game-platform/GamePlatformAccountGamesRepositoryContract";
 import { GamePlatformAccountGame } from "../../domain/entities/GamePlatformAccountGame";
 import { Uuid } from "../../domain/value-objects/Uuid";
 
-const AccountGameModel = require("../../../models").steam_account_reference_game;
+const AccountModel =
+  require("../../../models").steam_account;
+const AccountGameModel =
+  require("../../../models").steam_account_reference_game;
 
 export class SteamAccountReferenceGamesSequelizeRepository
   implements GamePlatformAccountGamesRepositoryContract
@@ -20,5 +23,27 @@ export class SteamAccountReferenceGamesSequelizeRepository
     );
 
     return newGames.length === games.length;
+  }
+
+  async getAccountGamesByUserId(userId: Uuid): Promise<GamePlatformAccountGame[]> {
+    const account = await AccountModel.findOne({
+      include: [{ association: "steam_account_reference_games" }],
+      where: {
+        user_id: userId.getValue(),
+      },
+    });
+    if(!account) return [];
+    const games = account.steam_account_reference_games;
+
+    return games.map((game: any) => {
+      return new GamePlatformAccountGame(
+        new Uuid(game.id),
+        new Uuid(game.steam_account_id),
+        game.steam_game_id,
+        game.name,
+        game.playtime_2_weeks,
+        game.playtime_forever
+      );
+    });
   }
 }
