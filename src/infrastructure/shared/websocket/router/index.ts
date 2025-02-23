@@ -12,6 +12,6 @@ export class WebSocketRouter {
     type: string
   ): WebSocketHandler | undefined {
     const handlers = this.routes.get(namespace);
-    return handlers?.find((h) => h.type === type);
+    return handlers?.find((h) => h.route === type);
   }
 }

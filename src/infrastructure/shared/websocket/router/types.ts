@@ -1,6 +1,7 @@
 export interface WebSocketHandler {
-  type: string;
-  handler: (connectionId: string, payload: any) => void | Promise<void>;
+  route: string;
+  namespace: string;
+  handler: (connectionId: string, data: any) => void | Promise<void>;
 }
 
 export interface WebSocketRouteNamespace {

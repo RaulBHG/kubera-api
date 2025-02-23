@@ -173,7 +173,7 @@
         document.getElementById("budgetValue").textContent = value;
       }
 
-      function txnStore() {
+      function storeTxn() {
         const budget = document.getElementById("budget").value;
         const steamUser = document.getElementById("steamUser").value;
 
@@ -185,7 +185,7 @@
       }
 
       document.getElementById("newTxnBtn").addEventListener("click", () => {
-        txnStore();
+        storeTxn();
       });
     </script>
   </body>

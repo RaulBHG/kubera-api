@@ -50,7 +50,7 @@ export class MockedTxnService implements MockedTxnServiceContract {
     //   payload: processingStatus,
     // });
 
-    this.logger.log("New txn detected", {
+    console.log("New txn detected", {
       context: "MockedTxnService",
       attributes: {
         // wsPublished,
@@ -59,6 +59,8 @@ export class MockedTxnService implements MockedTxnServiceContract {
         processingStatus,
       },
     });
+
+    // this.logger.log();
 
     return txnId;
   }
@@ -86,8 +88,8 @@ export class MockedTxnService implements MockedTxnServiceContract {
     const wsPublisher = new WebsocketConnectionPublisher(this.wsServer);
     const wsPublished = wsPublisher.toConnectionId(connectionId, {
       namespace: "txns",
-      type: "status_update",
-      payload: finalStatus,
+      route: "status_update",
+      data: finalStatus,
     });
 
     this.logger.log("Txn update detected", {

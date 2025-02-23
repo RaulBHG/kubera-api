@@ -18,7 +18,8 @@ const txnRoutes: WebSocketRouteNamespace = {
      * @desc Ruta websocket para iniciar una transaccion mystery box
      */
     {
-      type: "store",
+      namespace: "txns",
+      route: "store",
       // @ts-ignore
       handler: async (connectionId: string, payload: any) => {
         // TODO: anadir validacion sobre mensajes websocket
@@ -33,7 +34,8 @@ const txnRoutes: WebSocketRouteNamespace = {
      * @desc Ruta websocket para obtener el estado de una transaccion
      */
     {
-      type: "getStatusByTxnId",
+      namespace: "txns",
+      route: "getStatusByTxnId",
       handler: async (
         connectionId: string,
         payload: {

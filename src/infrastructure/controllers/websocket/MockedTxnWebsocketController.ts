@@ -40,8 +40,8 @@ export class MockedHandleTxnWebsocketController extends Controller {
         );
         const published = websocketPublisher.toConnectionId(connectionId, {
           namespace: "txns",
-          type: "status_update",
-          payload: txnStatus,
+          route: "status_update",
+          data: txnStatus,
         });
         console.log(`Published status update: ${published}`);
       }

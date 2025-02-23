@@ -54,12 +54,6 @@ class WebSocketClient {
       timestamp: Date.now(),
     });
   }
-
-  getStatusByTxnId(txnId) {
-    this.sendMessage("txns", "getStatusByTxnId", {
-      txn_id: txnId,
-    });
-  }
 }
 
 export default WebSocketClient;

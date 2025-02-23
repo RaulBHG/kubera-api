@@ -1,7 +1,7 @@
 export interface WebSocketMessage {
   namespace: string;
-  type: string;
-  payload: any;
+  route: string;
+  data: any;
   transaction_id?: string;
 }
 
