@@ -1,10 +1,6 @@
 import axios, { AxiosInstance } from "axios";
-import {
-  ScrapingHttpClientContract,
-  ScrapingHttpResponse,
-} from "../../../domain/contracts/ScrapingHttpClientContract";
 
-export class ScrapingHttpClientAdapter implements ScrapingHttpClientContract {
+export class ScrapingHttpClientAdapter {
   private readonly axios: AxiosInstance;
 
   constructor() {
@@ -22,7 +18,9 @@ export class ScrapingHttpClientAdapter implements ScrapingHttpClientContract {
     requestUrl: string,
     tlsClientIdentifier: string,
     headers?: Record<string, string>
-  ): Promise<ScrapingHttpResponse<T>> {
+  ): Promise<{
+    data: T
+  }> {
     return await this.axios.post("/api/forward", {
       requestMethod,
       requestUrl,

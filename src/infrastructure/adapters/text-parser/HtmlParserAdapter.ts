@@ -1,10 +1,6 @@
 import * as cheerio from "cheerio";
-import {
-  HTMLParserContract,
-  ParsedElement,
-} from "../../../domain/contracts/HtmlParserContract";
 
-export class HtmlParserAdapter implements HTMLParserContract {
+export class HtmlParserAdapter {
   private $: any; // TODO: evitar any
 
   load(html: string): void {
@@ -32,4 +28,10 @@ export class HtmlParserAdapter implements HTMLParserContract {
   getHTML(selector: string): string | null {
     return this.$(selector).html();
   }
+}
+
+export interface ParsedElement {
+  text(): string;
+  attr(name: string): string | undefined;
+  html(): string | null;
 }

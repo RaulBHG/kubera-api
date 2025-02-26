@@ -1,8 +1,5 @@
 import { ExternalCategoryRepositoryContract } from "../../domain/contracts/repositories/ExternalCategoryRepositoryContract";
 import { Category } from "../../domain/entities/Category";
-import { HtmlParserAdapter } from "../adapters/text-parser/HtmlParserAdapter";
-import { ParsedElement } from "../../domain/contracts/HtmlParserContract";
-import { ScrapingHttpClientAdapter } from "../adapters/http/ScrapingHttpClientAdapter";
 import { HttpClientAdapter } from "../adapters/http/HttpClientAdapter";
 
 export class CategorySteamRepository
@@ -41,10 +38,10 @@ export class CategorySteamRepository
       this.headers
     );
 
-    if (!steamResponse.data || !steamResponse.data.response.tags) {
+    if (!steamResponse || !steamResponse.response.tags) {
       throw new Error("No categories found in steam response");
     }
 
-    return parseToEntities(steamResponse.data.response.tags);
+    return parseToEntities(steamResponse.response.tags);
   }
 }

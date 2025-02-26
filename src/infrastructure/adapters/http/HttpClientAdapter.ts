@@ -1,21 +1,16 @@
 import axios, { AxiosInstance } from "axios";
-import {
-  HttpClientContract,
-  HttpResponse,
-} from "../../../domain/contracts/HttpClientContract";
-
-export class HttpClientAdapter implements HttpClientContract {
+export class HttpClientAdapter {
   private readonly axios: AxiosInstance;
 
   constructor() {
     this.axios = axios.create();
   }
 
-  async httpRequest<T>(
+  async httpRequest(
     requestMethod: string,
     requestUrl: string,
     headers: Record<string, string>
-  ): Promise<HttpResponse<T>> {
+  ): Promise<any> {
     try {
       const response = await this.axios.request({
         method: requestMethod,
