@@ -134,6 +134,7 @@ export class SearchMysteryBoxMatchesUseCase {
 
       if (this.isDuplicateRoll(rollOption, uniqueRolls)) continue;
 
+      // TODO: FELIPE AQUÍ
       // TODO: Set as constant and implement chain of responsibility
       let validatedRoll =
         await this.gameProviderRepository.validateAndReturnMysteryBoxRoll(
