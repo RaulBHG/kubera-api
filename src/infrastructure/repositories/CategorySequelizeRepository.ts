@@ -1,4 +1,4 @@
-import { CategoryRepositoryContract } from "../../domain/contracts/repositories/CategoryRepositoryContract";
+import { CategoryRepositoryContract } from "../../domain/contracts/CategoryRepositoryContract";
 import { Category } from "../../domain/entities/Category";
 import { Uuid } from "../../domain/value-objects/Uuid";
 

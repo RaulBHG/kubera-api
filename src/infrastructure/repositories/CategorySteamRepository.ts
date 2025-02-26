@@ -1,4 +1,4 @@
-import { ExternalCategoryRepositoryContract } from "../../domain/contracts/repositories/ExternalCategoryRepositoryContract";
+import { ExternalCategoryRepositoryContract } from "../../domain/contracts/ExternalCategoryRepositoryContract";
 import { Category } from "../../domain/entities/Category";
 import { HttpClientAdapter } from "../adapters/http/HttpClientAdapter";
 
