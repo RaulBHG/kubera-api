@@ -22,37 +22,9 @@ export class PinoLoggerAdapter implements LoggerContract {
       },
       pino.destination({
         dest: logFilePath,
-        sync: false,
+        sync: true,
       })
     );
-
-    // // mock a this.logger
-    // this.logger = {
-    //   //@ts-ignore
-    //   trace: (obj: any, message: string) => {
-    //     console.log(`[TRACE] ${message || ""}`, obj);
-    //   },
-    //   //@ts-ignore
-    //   debug: (obj: any, message: string) => {
-    //     console.log(`[DEBUG] ${message || ""}`, obj);
-    //   },
-    //   //@ts-ignore
-    //   info: (obj: any, message: string) => {
-    //     console.log(`[INFO] ${message || ""}`, obj);
-    //   },
-    //   //@ts-ignore
-    //   warn: (obj: any, message: string) => {
-    //     console.log(`[WARN] ${message || ""}`, obj);
-    //   },
-    //   //@ts-ignore
-    //   error: (obj: any, message: string) => {
-    //     console.log(`[ERROR] ${message || ""}`, obj);
-    //   },
-    //   //@ts-ignore
-    //   fatal: (obj: any, message: string) => {
-    //     console.log(`[FATAL] ${message || ""}`, obj);
-    //   },
-    // };
   }
 
   async log(

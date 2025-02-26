@@ -8,3 +8,10 @@ export interface WebSocketRouteNamespace {
   namespace: string;
   handlers: WebSocketHandler[];
 }
+
+export interface WebSocketMessage {
+  namespace: string;
+  route: string;
+  data: any;
+  transaction_id?: string;
+}

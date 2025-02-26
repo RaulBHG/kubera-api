@@ -2,6 +2,7 @@ import { SearchMysteryBoxMatchesUseCase } from "../../application/SearchMysteryB
 import { MockedTxnService } from "../../application/services/MockedTxnService";
 import { PinoLoggerAdapter } from "../adapters/log/PinoLoggerAdapter";
 import { MysteryBoxController } from "../controllers/MysteryBoxController";
+import { WebsocketConnectionPublisher } from "../publishers/websocket/WebsocketConnectionPublisher";
 import { CategorySequelizeRepository } from "../repositories/CategorySequelizeRepository";
 import { KinguinRepository } from "../repositories/KinguinRepository";
 import { MysteryBoxSequelizeRepository } from "../repositories/MysteryBoxSequelizeRepository";
@@ -20,8 +21,15 @@ const DIContainer = createContainer({
 });
 
 DIContainer.register({
-  // ---------------- SINGLETONES ----------------
+  // ---------------- INFRA ----------------
   webSocketServer: asClass(WebSocketServer).singleton().scoped(),
+
+  // ---------------- PUBLISHERS ----------------
+  wsConnectionPublisher: asClass(WebsocketConnectionPublisher)
+    .singleton()
+    .scoped(),
+
+  // ---------------- SERVICES ----------------
   mockedTxnService: asClass(MockedTxnService).singleton().scoped(),
 
   // ---------------- REPOSITORIES ----------------
