@@ -22,7 +22,7 @@ export class PinoLoggerAdapter implements LoggerContract {
       },
       pino.destination({
         dest: logFilePath,
-        sync: false,
+        sync: true,
       })
     );
   }
@@ -56,6 +56,8 @@ export class PinoLoggerAdapter implements LoggerContract {
       },
       logMessage.getMessage()
     );
+
+    console.log(logMessage);
 
     return logMessage;
   }

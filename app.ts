@@ -1,16 +1,25 @@
-import express, { Express } from "express";
 import dotenv from "dotenv";
-const config = require("./config/config.js");
+import { ServerInstance } from "./src/infrastructure/shared/server/index";
+
+const diContainer = require("./src/infrastructure/shared/DIContainer");
 
 dotenv.config();
 
-const app: Express = express();
-const port = process.env.APP_PORT || 3000;
-const env = process.env.NODE_ENV || "development";
-const dbConfig = config[env];
+// # Initialize server instance with DI container
+const serverInstance = ServerInstance.initialize(diContainer);
 
-app.use(require("./src/infrastructure/web/routes/api"));
+// # Add Express app routes
+serverInstance
+  .getExpressApp()
+  .use(require("./src/infrastructure/shared/web/routes/api/router"))
+  .use(require("./src/infrastructure/shared/web/routes/webhook/router"));
 
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
-});
+serverInstance
+  .getWebSocketServer()
+  .getRouter()
+  .addRoute(
+    require("./src/infrastructure/shared/websocket/routes/txns").default
+  );
+
+// # Start Express app + WS Server
+serverInstance.startServer(parseInt(process.env.APP_PORT || "3000"));

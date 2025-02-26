@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mystery box process test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .dev-banner {
+        background-color: #ff6b6b;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+      }
+      .message-box {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 20px 0;
+        height: 300px;
+        overflow-y: auto;
+        font-family: monospace;
+        background: #f5f5f5;
+      }
+      .received {
+        color: #2c5282;
+      }
+      .error {
+        color: #c53030;
+      }
+      .success {
+        color: #2f855a;
+      }
+      .button {
+        border: none;
+        padding: 12px 24px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 20px 0;
+        position: relative;
+        min-width: 120px;
+      }
+      .test-payment-btn {
+        background-color: #4299e1;
+        color: white;
+      }
+      .reconnect-btn {
+        background-color: #48bb78;
+        color: white;
+        margin-left: 10px;
+      }
+      .button:disabled {
+        background-color: #a0aec0;
+        cursor: not-allowed;
+      }
+      .transaction-info {
+        background-color: #ebf8ff;
+        border: 1px solid #4299e1;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+      .spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #ffffff;
+        border-top: 3px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      @keyframes spin {
+        0% {
+          transform: translateY(-50%) rotate(0deg);
+        }
+        100% {
+          transform: translateY(-50%) rotate(360deg);
+        }
+      }
+      .loading .spinner {
+        display: block;
+      }
+      .button-text {
+        margin-right: 25px;
+      }
+      .buttons-container {
+        display: flex;
+        align-items: center;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      .form-group input[type="text"],
+      .form-group input[type="range"] {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+      }
+      .form-group input[type="range"] {
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Mystery box test</h1>
+    <div class="transaction-info">
+      <p>WebSocket server: <code id="serverUrl">ws://localhost:3000</code></p>
+      <p>Environment: Local Development</p>
+    </div>
+
+    <div class="form-group">
+      <label for="budget">Budget: <span id="budgetValue">250</span> USD</label>
+      <input
+        type="range"
+        id="budget"
+        name="budget"
+        min="0"
+        max="500"
+        value="250"
+        oninput="updateBudgetValue(this.value)"
+      />
+    </div>
+    <div class="form-group">
+      <label for="steamUser">Steam Username or User ID:</label>
+      <input
+        type="text"
+        id="steamUser"
+        name="steamUser"
+        placeholder="Enter Steam Username or User ID"
+      />
+    </div>
+
+    <div class="buttons-container">
+      <button id="newTxnBtn" class="button test-payment-btn">
+        <span class="button-text">Get mystery box</span>
+        <span class="spinner"></span>
+      </button>
+    </div>
+
+    <div id="messageBox" class="message-box"></div>
+
+    <script type="module">
+      import WebSocketClient from "./ws-route-client.js";
+
+      const SERVER_URL = "ws://localhost:3000";
+      const wsClient = new WebSocketClient(SERVER_URL);
+
+      function logMessage(message, type = "normal") {
+        const messageBox = document.getElementById("messageBox");
+        const messageElement = document.createElement("div");
+        messageElement.classList.add(type);
+        messageElement.textContent = `${new Date().toISOString()} ${message}`;
+        messageBox.appendChild(messageElement);
+        messageBox.scrollTop = messageBox.scrollHeight;
+      }
+
+      function updateBudgetValue(value) {
+        document.getElementById("budgetValue").textContent = value;
+      }
+
+      function storeTxn() {
+        const budget = document.getElementById("budget").value;
+        const steamUser = document.getElementById("steamUser").value;
+
+        wsClient.store(budget, steamUser);
+        logMessage(
+          `New txn: Budget ${budget}, Steam User ${steamUser}`,
+          "success"
+        );
+      }
+
+      document.getElementById("newTxnBtn").addEventListener("click", () => {
+        storeTxn();
+      });
+    </script>
+  </body>
+</html>
