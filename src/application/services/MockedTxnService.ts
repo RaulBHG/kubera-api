@@ -1,9 +1,11 @@
-import { WebSocketServer } from "../../infrastructure/shared/websocket/server";
-import { TransactionStatus } from "../../infrastructure/shared/websocket/types";
+import { WebSocketServer } from "../../infrastructure/shared/websocket/WebSocketServer";
+import { TransactionStatus } from "../../infrastructure/shared/websocket/WebsocketContracts";
 import { LoggerContract } from "../../domain/contracts/LoggerContract";
 import { WebsocketConnectionPublisher } from "../../infrastructure/publishers/websocket/WebsocketConnectionPublisher";
 import { MockedTxnServiceContract } from "../../domain/contracts/MockedTxnServiceContract";
 
+
+// TODO: ESTO NO TIENE QUE ESTAR AQUÍ A FUTURO
 export class MockedTxnService implements MockedTxnServiceContract {
   private transactions: Map<string, TransactionStatus> = new Map();
   private connectionMap: Map<string, string> = new Map();

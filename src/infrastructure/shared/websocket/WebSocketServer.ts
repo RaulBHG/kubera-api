@@ -2,13 +2,11 @@ import { WebSocket, WebSocketServer as WSServer } from "ws";
 import { Server, IncomingMessage } from "http";
 import { parse } from "url";
 import { WebSocketRouter } from "./router";
-import { WebSocketMessage } from "./types";
+import { WebSocketMessage } from "./WebsocketContracts";
 
 export class WebSocketServer {
   private wss: WSServer | null = null;
   private connections: Map<string, WebSocket> = new Map();
-  private transactionHandlers: Map<string, any> = new Map();
-  private readonly TRANSACTION_TIMEOUT = 30000;
   private router: WebSocketRouter;
 
   constructor() {
@@ -21,8 +19,7 @@ export class WebSocketServer {
     message: string
   ): void {
     try {
-      const parsedMessage: WebSocketMessage & { namespace?: string } =
-        JSON.parse(message.toString());
+      const parsedMessage: WebSocketMessage = JSON.parse(message);
       const { route, data } = parsedMessage;
 
       if (!namespace || !route) {
@@ -32,7 +29,7 @@ export class WebSocketServer {
 
       const handler = this.router.getHandler(namespace, route);
       if (handler) {
-        handler.handler(connectionId, data);
+        handler.handle(connectionId, data);
       } else {
         console.log(
           `No handler found for namespace: ${namespace}, route: ${route}`
@@ -50,7 +47,7 @@ export class WebSocketServer {
   initialize(server: Server): void {
     this.wss = new WSServer({ server });
 
-    this.wss.on("connection", (ws, req: IncomingMessage) => {
+    this.wss.on("connection", (ws: any, req: IncomingMessage) => {
       const routeNamespace = String(parse(req.url || "", true).query.n);
 
       if (!routeNamespace) {

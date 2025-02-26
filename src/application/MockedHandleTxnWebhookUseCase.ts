@@ -1,5 +1,5 @@
 import { MockedTxnServiceContract } from "../domain/contracts/MockedTxnServiceContract";
-import { TransactionStatus } from "../infrastructure/shared/websocket/types";
+import { TransactionStatus } from "../infrastructure/shared/websocket/WebsocketContracts";
 
 export class MockedHandleTxnWebhookUseCase {
   constructor(private mockedTxnService: MockedTxnServiceContract) {}

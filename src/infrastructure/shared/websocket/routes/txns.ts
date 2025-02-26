@@ -1,8 +1,8 @@
-import { WebSocketRouteNamespace } from "../router/types";
 import { MockedHandleTxnWebsocketController } from "../../../controllers/websocket/MockedTxnWebsocketController";
 import { ServerInstance } from "../../server";
 import { MockedTxnService } from "../../../../application/services/MockedTxnService";
-import { WebSocketServer } from "../server";
+import { WebSocketServer } from "../WebSocketServer";
+import { WebSocketRouteNamespace } from "../WebsocketContracts";
 
 const diContainer = ServerInstance.getInstance().getDiContainer();
 
@@ -21,7 +21,7 @@ const txnRoutes: WebSocketRouteNamespace = {
       namespace: "txns",
       route: "store",
       // @ts-ignore
-      handler: async (connectionId: string, payload: any) => {
+      handle: async (connectionId: string, payload: any) => {
         // TODO: anadir validacion sobre mensajes websocket
         mockedTxnWebsocketController.handleStore({
           connectionId,
@@ -36,7 +36,7 @@ const txnRoutes: WebSocketRouteNamespace = {
     {
       namespace: "txns",
       route: "getStatusByTxnId",
-      handler: async (
+      handle: async (
         connectionId: string,
         payload: {
           txn_id: string;

@@ -9,7 +9,7 @@ import { PlatformRepositoryContract } from '../domain/contracts/PlatformReposito
 import { GamePlatformAccountGamesRepositoryContract } from '../domain/contracts/game-platform/GamePlatformAccountGamesRepositoryContract';
 import { ExternalGamePlatformRepositoryContract } from '../domain/contracts/game-platform/ExternalGamePlatformRepositoryContract';
 import { MysteryBoxRoll } from '../domain/entities/MysteryBoxRoll';
-import { CategoryRepositoryContract } from '../domain/contracts/repositories/CategoryRepositoryContract';
+import { CategoryRepositoryContract } from '../domain/contracts/CategoryRepositoryContract';
 export class SearchMysteryBoxMatchesUseCase {
   constructor(
     private readonly userRepository: UserRepositoryContract,

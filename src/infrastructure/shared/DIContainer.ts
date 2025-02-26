@@ -12,7 +12,7 @@ import { SteamAccountReferenceGamesSequelizeRepository } from "../repositories/S
 import { SteamAccountSequelizeRepository } from "../repositories/SteamAccountSequelizeRepository";
 import { SteamGamePlatformRepository } from "../repositories/SteamGamePlatformRepository";
 import { UserSequelizeRepository } from "../repositories/UserSequelizeRepository";
-import { WebSocketServer } from "./websocket/server";
+import { WebSocketServer } from "./websocket/WebSocketServer";
 
 const { asClass, asValue, createContainer } = require("awilix");
 

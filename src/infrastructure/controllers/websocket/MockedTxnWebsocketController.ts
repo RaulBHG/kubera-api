@@ -1,6 +1,6 @@
 import { Controller } from "../Controller";
 import { WebsocketConnectionPublisher } from "../../publishers/websocket/WebsocketConnectionPublisher";
-import { WebSocketServer } from "../../shared/websocket/server";
+import { WebSocketServer } from "../../shared/websocket/WebSocketServer";
 import { MockedTxnServiceContract } from "../../../domain/contracts/MockedTxnServiceContract";
 
 export class MockedHandleTxnWebsocketController extends Controller {

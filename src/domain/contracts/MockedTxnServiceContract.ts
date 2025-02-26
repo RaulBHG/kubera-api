@@ -1,4 +1,4 @@
-import { TransactionStatus } from "../../infrastructure/shared/websocket/types";
+import { TransactionStatus } from "../../infrastructure/shared/websocket/WebsocketContracts";
 
 export interface MockedTxnServiceContract {
   store(wsConnectionId: string, data: { [key: string]: any }): Promise<string>;
