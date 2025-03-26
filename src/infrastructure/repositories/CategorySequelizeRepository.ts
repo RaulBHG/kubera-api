@@ -77,30 +77,30 @@ export class CategorySequelizeRepository implements CategoryRepositoryContract {
       categories.map(async (category) => {
         await CategoryModel.update(
           {
-            slug: category.getSlug(),
-            name: category.getName(),
-            visible: category.isVisible(),
+            slug: category.slug,
+            name: category.name,
+            visible: category.visible,
           },
           {
             where: {
-              external_id: category.getExternalId(),
+              external_id: category.externalId,
             },
           }
         );
 
         const updatedCategory = await CategoryModel.findOne({
           where: {
-            external_id: category.getExternalId(),
+            external_id: category.externalId,
           },
         });
 
         if (!updatedCategory) {
           return await CategoryModel.create({
             id: Uuid.create().getValue(),
-            slug: category.getSlug(),
-            name: category.getName(),
-            visible: category.isVisible(),
-            external_id: category.getExternalId(),
+            slug: category.slug,
+            name: category.name,
+            visible: category.visible,
+            external_id: category.externalId,
           });
         }
 

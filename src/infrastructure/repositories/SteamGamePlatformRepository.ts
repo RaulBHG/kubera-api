@@ -93,7 +93,7 @@ export class SteamGamePlatformRepository
     limit: number
   ): Promise<GamePlatformAccountGame[] | null> {
     const accountGamesResponse = await this.requestAccountGames(
-      account.getPlatformUserId(),
+      account.userId,
       true
     );
 
@@ -109,7 +109,7 @@ export class SteamGamePlatformRepository
         .map((game: any) => {
           return new GamePlatformAccountGame(
             null,
-            account.getId()!,
+            account.id!,
             game.appid,
             game.name,
             game.playtime_2weeks ?? null,
@@ -156,8 +156,8 @@ export class SteamGamePlatformRepository
       return array;
     };
 
-    const categories = mysteryBox.getCategories();
-    const region = mysteryBox.getRegion();
+    const categories = mysteryBox.categories;
+    const region = mysteryBox.region;
 
     const referenceGamesSteamCategoriesIds = [
       ...new Set(
@@ -167,7 +167,7 @@ export class SteamGamePlatformRepository
               // TODO: No tener que añadir delay
               await this.delay(333 * index); // 3 requests per second
               const steamCategoriesIds = await this.getGameSteamCategoriesIds(
-                game.getPlatformGameId()
+                game.platformGameId
               );
               return steamCategoriesIds.flat();
             })
@@ -245,7 +245,7 @@ export class SteamGamePlatformRepository
       // Get the games that don't match with the reference games
       const additionalGames = games.filter(
         (game) =>
-          !finalGames.some((finalGame) => finalGame.getId() === game.getId())
+          !finalGames.some((finalGame) => finalGame.id === game.id)
       );
       // Concat the games that don't match with the reference games to the final games
       finalGames = finalGames.concat(
@@ -267,15 +267,15 @@ export class SteamGamePlatformRepository
       // Get a random game or 2 games from the final games
       const randomGame =
         finalGames[Math.floor(Math.random() * finalGames.length)];
-      if (!randomGame || !randomGame.getGamePlatformPrice()) {
+      if (!randomGame || !randomGame.gamePlatformPrice) {
         throw new Error("No games found");
       }
 
-      const gamePrice = randomGame.getGamePlatformPrice() ?? 0;
+      const gamePrice = randomGame.gamePlatformPrice ?? 0;
       
       if (
         totalPrice + gamePrice >= euroAmount ||
-        gameProviderGames.some((game) => game.getName() === randomGame.getName())
+        gameProviderGames.some((game) => game.name === randomGame.name)
       ) {
         break;
       }
@@ -284,13 +284,13 @@ export class SteamGamePlatformRepository
         new GameProviderGame(
           Uuid.create(), // id
           mysteryBoxRollId, // mysteryBoxRollId
-          randomGame.getName(), // name
-          randomGame.getImgUrl(), // imgUrl
-          randomGame.getRegion(), // region
-          randomGame.getPlatform(), // platform
-          randomGame.getExternalData(), // externalData
+          randomGame.name, // name
+          randomGame.imgUrl, // imgUrl
+          randomGame.region, // region
+          randomGame.platform, // platform
+          randomGame.externalData, // externalData
           gamePrice, // gamePlatformPrice
-          randomGame.getCategories() // categories
+          randomGame.categories // categories
         ),
       );
 
@@ -300,7 +300,7 @@ export class SteamGamePlatformRepository
 
     return new MysteryBoxRoll(
       mysteryBoxRollId, // id
-      mysteryBox.getId(), // mysteryBoxId
+      mysteryBox.id, // mysteryBoxId
       false, // viewed
       false, // rejected
       false, // selected
@@ -375,7 +375,7 @@ export class SteamGamePlatformRepository
     let items: any[] = [];
     let totalMatchingRecords = 1000000000;
 
-    const categoryExternalIds = categories?.map((category) => category.getExternalId()) ?? [];
+    const categoryExternalIds = categories?.map((category) => category.externalId) ?? [];
 
     // Request games until the items array has the maxGamesToRequest length
     while (items.length < maxGamesToRequest) {
@@ -594,7 +594,7 @@ export class SteamGamePlatformRepository
       return [];
     }
     const accountGamesResponse = await this.requestAccountGames(
-      account.getPlatformUserId(),
+      account.userId,
       false
     );
 

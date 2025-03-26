@@ -6,45 +6,14 @@ import { MysteryBoxRoll } from './MysteryBoxRoll';
 
 export class MysteryBox {
   constructor(
-    private readonly id: Uuid | null,
-    private readonly userId: Uuid | null,
-    private readonly type: MysteryBoxType | null,
-    private readonly mysteryBoxRolls: MysteryBoxRoll[] | null,
-    private readonly expiration: Date,
-    private readonly region: string | null,
-    private readonly categories: Category[] | null,
-    private readonly platforms: Platform[] | null
+    public readonly id: Uuid | null,
+    public readonly userId: Uuid | null,
+    public readonly type: MysteryBoxType | null,
+    public readonly mysteryBoxRolls: MysteryBoxRoll[] | null,
+    public readonly expiration: Date,
+    public readonly region: string | null,
+    public readonly categories: Category[] | null,
+    public readonly platforms: Platform[] | null
   ) {}
 
-  getId(): Uuid | null {
-    return this.id;
-  }
-
-  getUserId(): Uuid | null {
-    return this.userId;
-  }
-
-  getType(): MysteryBoxType | null {
-    return this.type;
-  }
-
-  getMysteryBoxRolls(): MysteryBoxRoll[] | null {
-    return this.mysteryBoxRolls;
-  }
-
-  getExpiration(): Date {
-    return this.expiration;
-  }
-
-  getRegion(): string | null {
-    return this.region;
-  }
-
-  getCategories(): Category[] | null {
-    return this.categories;
-  }
-
-  getPlatforms(): Platform[] | null {
-    return this.platforms;
-  }
 }

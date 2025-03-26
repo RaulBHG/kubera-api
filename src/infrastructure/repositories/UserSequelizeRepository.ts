@@ -7,9 +7,9 @@ const UserModel = require("../../../models").user;
 export class UserSequelizeRepository implements UserRepositoryContract {
   async create(user: User): Promise<User> {
     const newUser = await UserModel.create({
-      id: user.getId().getValue(),
-      ip: user.getIp(),
-      email: user.getEmail(),
+      id: user.id.getValue(),
+      ip: user.ip,
+      email: user.email,
     });
     return new User(
       new Uuid(newUser.id),

@@ -13,12 +13,12 @@ export class SteamAccountReferenceGamesSequelizeRepository
   async createMultiple(games: GamePlatformAccountGame[]): Promise<boolean> {
     const newGames = await AccountGameModel.bulkCreate(
       games.map((game) => ({
-        id: game.getId()?.getValue() ?? Uuid.create().getValue(),
-        steam_account_id: game.getPlatformAccountId(),
-        steam_game_id: game.getPlatformGameId(),
-        name: game.getName(),
-        playtime_2_weeks: game.getPlaytime2Weeks(),
-        playtime_forever: game.getPlaytimeForever(),
+        id: game.id?.getValue() ?? Uuid.create().getValue(),
+        steam_account_id: game.platformAccountId,
+        steam_game_id: game.platformGameId,
+        name: game.name,
+        playtime_2_weeks: game.playtime2Weeks,
+        playtime_forever: game.playtimeForever,
       }))
     );
 

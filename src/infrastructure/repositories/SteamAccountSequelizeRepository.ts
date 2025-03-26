@@ -9,10 +9,10 @@ export class SteamAccountSequelizeRepository implements GamePlatformAccountRepos
     gamePlatformAccount: GamePlatformAccount
   ): Promise<GamePlatformAccount> {
     const newAccount = await AccountModel.create({
-      id: gamePlatformAccount.getId()?.getValue() ?? Uuid.create().getValue(),
-      user_id: gamePlatformAccount.getUserId(),
-      steam_username: gamePlatformAccount.getPlatformUsername(),
-      steam_userid: gamePlatformAccount.getPlatformUserId(),
+      id: gamePlatformAccount.id?.getValue() ?? Uuid.create().getValue(),
+      user_id: gamePlatformAccount.userId,
+      steam_username: gamePlatformAccount.platformUsername,
+      steam_userid: gamePlatformAccount.userId,
     });
 
     return new GamePlatformAccount(

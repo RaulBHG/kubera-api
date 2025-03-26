@@ -12,18 +12,18 @@ const MysteryModel = require("../../../models").mystery_box;
 export class MysteryBoxSequelizeRepository implements MysteryBoxRepositoryContract {
   async create(mysteryBox: MysteryBox): Promise<MysteryBox> {
     const newMysteryBox = await MysteryModel.create({
-      id: mysteryBox?.getId()?.getValue() ?? Uuid.create().getValue(),
-      user_id: mysteryBox?.getUserId()?.getValue(),
-      type_id: mysteryBox?.getType()?.getId()?.getValue(),
-      expiration: mysteryBox?.getExpiration(),
+      id: mysteryBox?.id?.getValue() ?? Uuid.create().getValue(),
+      user_id: mysteryBox?.userId?.getValue(),
+      type_id: mysteryBox?.type?.id?.getValue(),
+      expiration: mysteryBox?.expiration,
     });
 
     const categoryIds = mysteryBox
-      ?.getCategories()
-      ?.map((category) => category.getId());
+      ?.categories
+      ?.map((category) => category.id);
     const platformIds = mysteryBox
-      ?.getPlatforms()
-      ?.map((platform) => platform.getId());
+      ?.platforms
+      ?.map((platform) => platform.id);
 
     await newMysteryBox.setCategories(categoryIds);
     await newMysteryBox.setPlatforms(platformIds);
@@ -52,20 +52,20 @@ export class MysteryBoxSequelizeRepository implements MysteryBoxRepositoryContra
     const rolls = await Promise.all(
       mysteryBoxRolls.map(async (roll) => {
         const [assignedRoll, created] = await MysteryModel.rolls.findOrCreate({
-          where: { id: roll?.getId()?.getValue() ?? Uuid.create().getValue() },
+          where: { id: roll?.id?.getValue() ?? Uuid.create().getValue() },
           defaults: {
-            mystery_box_id: mysteryBox?.getId()?.getValue(),
-            viewed: roll.getViewed(),
-            rejected: roll.getRejected(),
-            selected: roll.getSelected(),
-            option_number: roll.getOptionNumber(),
+            mystery_box_id: mysteryBox?.id?.getValue(),
+            viewed: roll.viewed,
+            rejected: roll.rejected,
+            selected: roll.selected,
+            option_number: roll.optionNumber,
           },
         });
 
         if (created) {
           const gameProviderGameIds = roll
-            ?.getGameProviderGames()
-            ?.map((game) => game?.getId()?.getValue());
+            ?.gameProviderGames
+            ?.map((game) => game?.id?.getValue());
           await assignedRoll.setGames(gameProviderGameIds);
         }
 
@@ -74,7 +74,7 @@ export class MysteryBoxSequelizeRepository implements MysteryBoxRepositoryContra
     );
 
     return await this.fromSequelizetoEntity(
-      MysteryModel.findByPk(mysteryBox?.getId()?.getValue())
+      MysteryModel.findByPk(mysteryBox?.id?.getValue())
     );
   }
 
@@ -90,7 +90,7 @@ export class MysteryBoxSequelizeRepository implements MysteryBoxRepositoryContra
         )
       : null;
 
-    const categories = await mysteryBox.getCategories();
+    const categories = await mysteryBox.categories;
     const categoryEntities = categories.map(
       (category: any) =>
         new Category(
@@ -101,7 +101,7 @@ export class MysteryBoxSequelizeRepository implements MysteryBoxRepositoryContra
           category.visible
         )
     );
-    const platforms = await mysteryBox.getPlatforms();
+    const platforms = await mysteryBox.platforms;
     const platformEntities = platforms.map(
       (platform: any) =>
         new Platform(

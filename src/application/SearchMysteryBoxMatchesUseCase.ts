@@ -80,7 +80,7 @@ export class SearchMysteryBoxMatchesUseCase {
 
       if (!rolls)
         throw new Error(
-          `Could not get rolls for mystery box with id ${mysteryBoxNoRolls.getId()}`
+          `Could not get rolls for mystery box with id ${mysteryBoxNoRolls.id}`
         );
 
       this.mysteryBoxRepository.create(mysteryBoxNoRolls);
@@ -112,7 +112,7 @@ export class SearchMysteryBoxMatchesUseCase {
       );
 
     // TODO: AMOUNT NOT HARDCODED
-    const euroAmount = 60 * (mysteryBox.getType()?.getMultiplier() ?? 1); // Get the price of the mystery box
+    const euroAmount = 60 * (mysteryBox.type?.multiplier ?? 1); // Get the price of the mystery box
 
     const games =
       await this.externalGamePlatformRepository.getAvailableGameProviderGames(
@@ -161,11 +161,11 @@ export class SearchMysteryBoxMatchesUseCase {
   ): boolean {
     return existingRolls.some((roll) =>
       roll
-        .getGameProviderGames()
+        .gameProviderGames
         ?.some(
           (game, index) =>
-            newRoll.getGameProviderGames()?.[index]?.getName() ===
-            game.getName()
+            newRoll.gameProviderGames?.[index]?.name ===
+            game.name
         )
     );
   }
@@ -175,31 +175,31 @@ export class SearchMysteryBoxMatchesUseCase {
     rerollOption: number
   ): Promise<IBoxMatch> {
     const roll = mysteryBox
-      .getMysteryBoxRolls()
-      ?.find((roll) => roll.getOptionNumber() == rerollOption);
+      .mysteryBoxRolls
+      ?.find((roll) => roll.optionNumber == rerollOption);
     if (!roll)
       throw new Error(
-        `Roll does not exists for mystery box with id ${mysteryBox.getId()} and for option number ${rerollOption}`
+        `Roll does not exists for mystery box with id ${mysteryBox.id} and for option number ${rerollOption}`
       );
 
     const result: IBoxMatch = {
-      id: mysteryBox?.getId()?.getValue() || null,
-      reroll_option: roll.getOptionNumber(),
-      rejected: roll.getRejected(),
+      id: mysteryBox?.id?.getValue() || null,
+      reroll_option: roll.optionNumber,
+      rejected: roll.rejected,
       games:
-        roll.getGameProviderGames()?.map((game) => {
-          const platform = game.getPlatform();
+        roll.gameProviderGames?.map((game) => {
+          const platform = game.platform;
           return {
-            id: game.getId()?.getValue() || null,
-            name: game.getName(),
-            region: game.getRegion(),
-            img_url: game.getImgUrl(),
+            id: game.id?.getValue() || null,
+            name: game.name,
+            region: game.region,
+            img_url: game.imgUrl,
             platform: platform
               ? {
-                  id: platform.getId() || null,
-                  slug: platform.getSlug(),
-                  name: platform.getName(),
-                  visible: platform.isVisible() || false,
+                  id: platform.id || null,
+                  slug: platform.slug,
+                  name: platform.name,
+                  visible: platform.visible || false,
                 }
               : null,
           };

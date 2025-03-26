@@ -10,9 +10,9 @@ export class CategoryController extends Controller {
       const useCase = new GetCategoryUseCase(new CategorySequelizeRepository());
       const categories = await useCase.getVisible();
       const formatedCategories = categories.map((category: Category) => ({
-        id: category.getId(),
-        slug: category.getSlug(),
-        name: category.getName(),
+        id: category.id,
+        slug: category.slug,
+        name: category.name,
       }));
 
       res.status(200).json({

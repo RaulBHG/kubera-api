@@ -7,23 +7,4 @@ export class Category {
     private readonly visible: boolean
   ) {}
 
-  getId(): string {
-    return this.id;
-  }
-
-  getSlug(): string | null {
-    return this.slug;
-  }
-
-  getName(): string | null {
-    return this.name;
-  }
-
-  getExternalId(): Number {
-    return this.externalId;
-  }
-
-  isVisible(): boolean {
-    return this.visible;
-  }
 }

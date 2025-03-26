@@ -3,42 +3,13 @@ import { GameProviderGame } from "./GameProviderGame";
 
 export class MysteryBoxRoll {
   constructor(
-    private readonly id: Uuid | null,
-    private readonly mysteryBoxId: Uuid | null,
-    private readonly viewed: boolean,
-    private readonly rejected: boolean,
-    private readonly selected: boolean,
-    private readonly optionNumber: number | null,
-    private readonly gameProviderGames: GameProviderGame[] | null
+    public readonly id: Uuid | null,
+    public readonly mysteryBoxId: Uuid | null,
+    public readonly viewed: boolean,
+    public readonly rejected: boolean,
+    public readonly selected: boolean,
+    public readonly optionNumber: number | null,
+    public readonly gameProviderGames: GameProviderGame[] | null
   ) {}
-
-  getId(): Uuid | null {
-    return this.id;
-  }
-
-  getMysteryBoxId(): Uuid | null {
-    return this.mysteryBoxId;
-  }
-
-  getViewed(): boolean {
-    return this.viewed;
-  }
-
-  getRejected(): boolean {
-    return this.rejected;
-  }
-
-  getSelected(): boolean {
-    return this.selected;
-  }
-
-  getOptionNumber(): number | null {
-    return this.optionNumber;
-  }
-
-  getGameProviderGames(): GameProviderGame[] | null {
-    return this.gameProviderGames;
-  }
-
 
 }

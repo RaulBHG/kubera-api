@@ -14,10 +14,10 @@ export class PlatformController extends Controller {
 
       const platformsWithoutExternalId = platforms.map(
         (platform: Platform) => ({
-          id: platform.getId(),
-          slug: platform.getSlug(),
-          name: platform.getName(),
-          visible: platform.isVisible(),
+          id: platform.id,
+          slug: platform.slug,
+          name: platform.name,
+          visible: platform.visible,
         })
       );
 

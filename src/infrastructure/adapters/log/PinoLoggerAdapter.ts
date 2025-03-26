@@ -46,15 +46,15 @@ export class PinoLoggerAdapter implements LoggerContract {
       options.attributes
     );
 
-    this.logger[logMessage.getLevel()](
+    this.logger[logMessage.level](
       {
-        name: logMessage.getName(),
-        context: logMessage.getContext(),
-        parentId: logMessage.getParentId(),
-        attributes: logMessage.getAttributes(),
-        timestamp: logMessage.getTimestamp(),
+        name: logMessage.name,
+        context: logMessage.context,
+        parentId: logMessage.parentId,
+        attributes: logMessage.attributes,
+        timestamp: logMessage.timestamp,
       },
-      logMessage.getMessage()
+      logMessage.message
     );
 
     console.log(logMessage);

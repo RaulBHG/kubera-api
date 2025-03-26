@@ -58,9 +58,9 @@ export class StoreExternalGamePlatformAccountUseCase {
     const userAccount = await this.gamePlatformRepository.create(
       new GamePlatformAccount(
         null,
-        user.getId().getValue(),
-        account.getPlatformUsername(),
-        account.getPlatformUserId()
+        user.id.getValue(),
+        account.platformUsername,
+        account.userId
       )
     );
 
