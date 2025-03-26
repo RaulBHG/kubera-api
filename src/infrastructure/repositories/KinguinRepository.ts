@@ -1,4 +1,4 @@
-import { GameProviderRepositoryContract } from "../../domain/contracts/GameProviderRepositoryContract";
+import { GameProviderRepositoryContract } from "../../domain/contracts/ExternalGameProviderRepositoryContract";
 import { GamePlatformAccountGame } from "../../domain/entities/GamePlatformAccountGame";
 import { MysteryBox } from "../../domain/entities/MysteryBox";
 import { MysteryBoxRoll } from "../../domain/entities/MysteryBoxRoll";

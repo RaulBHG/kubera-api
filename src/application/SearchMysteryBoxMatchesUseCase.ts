@@ -4,7 +4,7 @@ import { MysteryBox } from '../domain/entities/MysteryBox';
 import { Uuid } from '../domain/value-objects/Uuid';
 import { UserRepositoryContract } from './../domain/contracts/UserRepositoryContract';
 import { MysteryBoxTypeRepositoryContract } from '../domain/contracts/MysteryBoxTypeRepositoryContract';
-import { GameProviderRepositoryContract } from '../domain/contracts/GameProviderRepositoryContract';
+import { GameProviderRepositoryContract } from '../domain/contracts/ExternalGameProviderRepositoryContract';
 import { PlatformRepositoryContract } from '../domain/contracts/PlatformRepositoryContract';
 import { GamePlatformAccountGamesRepositoryContract } from '../domain/contracts/game-platform/GamePlatformAccountGamesRepositoryContract';
 import { ExternalGamePlatformRepositoryContract } from '../domain/contracts/game-platform/ExternalGamePlatformRepositoryContract';
