@@ -1,10 +1,10 @@
 export class Category {
   constructor(
-    private readonly id: string,
-    private readonly slug: string,
-    private readonly name: string,
-    private readonly externalId: Number,
-    private readonly visible: boolean
+    public readonly id: string,
+    public readonly slug: string,
+    public readonly name: string,
+    public readonly externalId: Number,
+    public readonly visible: boolean
   ) {}
 
 }

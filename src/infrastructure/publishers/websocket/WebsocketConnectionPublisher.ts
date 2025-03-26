@@ -1,4 +1,4 @@
-import { WebSocketMessage } from "../../shared/websocket/router/WebsocketRouterContracts";
+import { WebSocketMessage } from "../../shared/websocket/WebsocketContracts";
 import { WebSocketServer } from "../../shared/websocket/WebSocketServer";
 
 export class WebsocketConnectionPublisher {
