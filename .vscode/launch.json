@@ -10,6 +10,13 @@
             "request": "launch",
             "command": "npm run dev",
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "node-terminal",
+            "name": "Run Script: command --name=TestGameProviderCommand",
+            "request": "launch",
+            "command": "npm run command --name=TestGameProviderCommand",
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

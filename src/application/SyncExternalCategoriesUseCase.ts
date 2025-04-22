@@ -1,5 +1,5 @@
-import { CategoryRepositoryContract } from "../domain/contracts/repositories/CategoryRepositoryContract";
-import { ExternalCategoryRepositoryContract } from "../domain/contracts/repositories/ExternalCategoryRepositoryContract";
+import { CategoryRepositoryContract } from "../domain/contracts/CategoryRepositoryContract";
+import { ExternalCategoryRepositoryContract } from "../domain/contracts/ExternalCategoryRepositoryContract";
 import { LoggerContract } from "../domain/contracts/LoggerContract";
 import { LogLevel } from "../domain/value-objects/LogLevel";
 

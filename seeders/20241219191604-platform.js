@@ -14,6 +14,8 @@ module.exports = {
           name: "EA Origin",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -21,6 +23,8 @@ module.exports = {
           name: "Steam",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -28,6 +32,8 @@ module.exports = {
           name: "Battle.net",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -35,6 +41,8 @@ module.exports = {
           name: "NCSoft",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -42,6 +50,8 @@ module.exports = {
           name: "Ubisoft",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -49,6 +59,8 @@ module.exports = {
           name: "Uplay",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -56,6 +68,8 @@ module.exports = {
           name: "Kinguin",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -63,6 +77,8 @@ module.exports = {
           name: "XBOX 360",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -70,6 +86,8 @@ module.exports = {
           name: "XBOX ONE",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -77,6 +95,8 @@ module.exports = {
           name: "PlayStation 3",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -84,6 +104,8 @@ module.exports = {
           name: "PlayStation 4",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -91,6 +113,8 @@ module.exports = {
           name: "PlayStation Vita",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -98,6 +122,8 @@ module.exports = {
           name: "Android",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -105,6 +131,8 @@ module.exports = {
           name: "GOG COM",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -112,6 +140,8 @@ module.exports = {
           name: "Nintendo",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -119,6 +149,8 @@ module.exports = {
           name: "Other",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
           id: uuidv4(),
@@ -126,6 +158,8 @@ module.exports = {
           name: "Epic Games",
           external_id: uuidv4(),
           visible: true,
+          created_at: new Date(),
+          updated_at: new Date(),
         },
       ],
       {}

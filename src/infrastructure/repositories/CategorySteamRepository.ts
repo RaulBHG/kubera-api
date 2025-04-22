@@ -38,10 +38,10 @@ export class CategorySteamRepository
       this.headers
     );
 
-    if (!steamResponse || !steamResponse.response.tags) {
+    if (!steamResponse || !steamResponse.data.response.tags) {
       throw new Error("No categories found in steam response");
     }
 
-    return parseToEntities(steamResponse.response.tags);
+    return parseToEntities(steamResponse.data.response.tags);
   }
 }

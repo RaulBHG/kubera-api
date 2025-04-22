@@ -4,4 +4,6 @@ export interface ExternalGameProviderRepositoryContract {
   validateAndReturnMysteryBoxRoll(
     mysteryBoxRoll: MysteryBoxRoll
   ): Promise<MysteryBoxRoll | null>;
+  
+  setNext(provider: ExternalGameProviderRepositoryContract): ExternalGameProviderRepositoryContract;
 }

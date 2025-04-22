@@ -16,9 +16,11 @@ The standar is **kebab-case**.
 ### Sequelize
 
 To see commands for bbdd:
-`sequelize-cli`
+`npx sequelize-cli`
 For example to create model (this creates migration too) we use:
-`sequelize model:create --name category --attributes slug:string,name:string,external_id:string`
+`npx sequelize-cli model:create --name category --attributes slug:string,name:string,external_id:string`
+
+To migrate and seed: `npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all`
 
 ### Commands
 
