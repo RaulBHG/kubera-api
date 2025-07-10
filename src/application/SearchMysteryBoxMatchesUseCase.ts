@@ -4,7 +4,7 @@ import { MysteryBox } from '../domain/entities/MysteryBox';
 import { Uuid } from '../domain/value-objects/Uuid';
 import { UserRepositoryContract } from './../domain/contracts/UserRepositoryContract';
 import { MysteryBoxTypeRepositoryContract } from '../domain/contracts/MysteryBoxTypeRepositoryContract';
-import { GameProviderRepositoryContract } from '../domain/contracts/ExternalGameProviderRepositoryContract';
+import { ExternalGameProviderRepositoryContract } from '../domain/contracts/ExternalGameProviderRepositoryContract';
 import { PlatformRepositoryContract } from '../domain/contracts/PlatformRepositoryContract';
 import { GamePlatformAccountGamesRepositoryContract } from '../domain/contracts/game-platform/GamePlatformAccountGamesRepositoryContract';
 import { ExternalGamePlatformRepositoryContract } from '../domain/contracts/game-platform/ExternalGamePlatformRepositoryContract';
@@ -15,7 +15,7 @@ export class SearchMysteryBoxMatchesUseCase {
     private readonly userRepository: UserRepositoryContract,
     private readonly mysteryBoxRepository: MysteryBoxRepositoryContract,
     private readonly mysteryBoxTypeRepository: MysteryBoxTypeRepositoryContract,
-    private readonly gameProviderRepository: GameProviderRepositoryContract,
+    private readonly gameProviderRepository: ExternalGameProviderRepositoryContract,
     private readonly categoryRepository: CategoryRepositoryContract,
     private readonly platformRepository: PlatformRepositoryContract,
     private readonly gamePlatformAccountGamesRepository: GamePlatformAccountGamesRepositoryContract,
@@ -46,7 +46,10 @@ export class SearchMysteryBoxMatchesUseCase {
       // TODO: AMOUNT NOT HARDCODED
       const type = await this.mysteryBoxTypeRepository.getTypeForAmount(30);
       const expiration = new Date();
-      expiration.setSeconds(expiration.getSeconds() + Number(process.env.MYSTERY_BOX_EXPIRATION_TIME));
+      expiration.setSeconds(
+        expiration.getSeconds() +
+          Number(process.env.MYSTERY_BOX_EXPIRATION_TIME)
+      );
       const getNonNullResults = async (promises: Promise<any>[]) => {
         const results = await Promise.all(promises);
         return results.filter((result) => result !== null);
@@ -75,7 +78,7 @@ export class SearchMysteryBoxMatchesUseCase {
 
       const rolls = await this.getThreeUniqueMysteryBoxRolls(
         mysteryBoxNoRolls,
-        userIdUuid,
+        userIdUuid
       );
 
       if (!rolls)
@@ -94,7 +97,6 @@ export class SearchMysteryBoxMatchesUseCase {
       // If has been rejected bock on canjeo
       //return await this.formatResult(finalMysteryBox, rerollOption);
     } else {
-
       // TODO: Implementar cuando ya existe un mystery box activo
 
       return null;
@@ -160,13 +162,9 @@ export class SearchMysteryBoxMatchesUseCase {
     existingRolls: MysteryBoxRoll[]
   ): boolean {
     return existingRolls.some((roll) =>
-      roll
-        .gameProviderGames
-        ?.some(
-          (game, index) =>
-            newRoll.gameProviderGames?.[index]?.name ===
-            game.name
-        )
+      roll.gameProviderGames?.some(
+        (game, index) => newRoll.gameProviderGames?.[index]?.name === game.name
+      )
     );
   }
 
